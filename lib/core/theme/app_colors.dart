@@ -15,10 +15,15 @@ class AppColors {
   static const Color textPrimary = Color(0xFF14213D);
   static const Color textSecondary = Color(0xFF5B6B7F);
   static const Color border = Color(0xFFDCE3EC);
+  static const Color placeholder = Color(0xFFACB5BB);
+  static const Color blueTint = Color(0xFFDCEAF7);
 
   // Dark mode neutrals
   static const Color darkBackground = Color(0xFF0B1A30);
   static const Color darkSurface = Color(0xFF12253F);
+  static const Color darkSurfaceHigh = Color(0xFF1A3150);
+  static const Color darkTextSecondary = Color(0xFFB4C0D0);
+  static const Color darkBorder = Color(0xFF2C4262);
 
   // Status tugas (same as web): Belum abu, Berjalan biru, Selesai hijau,
   // Terlambat merah.

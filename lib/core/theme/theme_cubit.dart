@@ -9,7 +9,8 @@ class ThemeCubit extends Cubit<ThemeMode> {
   final SharedPreferences _preferences;
 
   ThemeCubit(this._preferences)
-    : super(_modeFromString(_preferences.getString(PreferenceKeys.themeMode)));
+      : super(
+            _modeFromString(_preferences.getString(PreferenceKeys.themeMode)));
 
   Future<void> toggleTheme() async {
     final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
