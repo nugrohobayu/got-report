@@ -47,9 +47,17 @@ class LoginCubit extends Cubit<LoginState> {
 
     emit(const LoginState(status: LoginStatus.loading));
     try {
-      await authRepository.login(email: trimmedEmail, password: password);
+      final mustChangePassword = await authRepository.login(
+        email: trimmedEmail,
+        password: password,
+      );
       emit(const LoginState(status: LoginStatus.success));
-      sessionCubit.setAuthenticated();
+      // The router then shows /change-password or home.
+      if (mustChangePassword) {
+        sessionCubit.setPasswordChangeRequired();
+      } else {
+        sessionCubit.setAuthenticated();
+      }
     } on Failure catch (f) {
       emit(LoginState(status: LoginStatus.failure, errorMessage: f.message));
     }

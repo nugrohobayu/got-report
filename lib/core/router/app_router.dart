@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/core/utils/app_logger.dart';
+import 'package:got_report/features/change_password/presentation/pages/change_password_page.dart';
 import 'package:got_report/features/download_test/presentation/pages/download_test_page.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
 import 'package:got_report/features/login/presentation/pages/login_page.dart';
@@ -11,17 +12,26 @@ import 'package:got_report/features/login/presentation/pages/login_page.dart';
 class AppRouter {
   AppRouter._();
 
+  static const _login = '/login';
+  static const _changePassword = '/change-password';
+
   /// Routes are guarded by [session]: logged-out users always land on
-  /// `/login`, logged-in users never see it.
+  /// `/login`, users who must change their password are kept on
+  /// `/change-password`, and fully logged-in users never see either.
   static GoRouter create(SessionCubit session) => GoRouter(
-        initialLocation: session.isAuthenticated ? '/' : '/login',
+        initialLocation: _startFor(session),
         refreshListenable: _StreamListenable(session.stream),
         observers: [_LoggingNavigatorObserver()],
         routes: [
           GoRoute(
-            path: '/login',
+            path: _login,
             name: 'login',
             builder: (context, state) => const LoginPage(),
+          ),
+          GoRoute(
+            path: _changePassword,
+            name: 'changePassword',
+            builder: (context, state) => const ChangePasswordPage(),
           ),
           GoRoute(
             path: '/',
@@ -36,12 +46,22 @@ class AppRouter {
         ],
         redirect: (context, state) {
           AppLogger.routing('Navigating to ${state.uri}');
-          final onLogin = state.matchedLocation == '/login';
-          if (!session.isAuthenticated) return onLogin ? null : '/login';
-          if (onLogin) return '/';
+          final location = state.matchedLocation;
+          // Logged out / must change password: only the matching screen.
+          if (!session.isAuthenticated) {
+            final target = _startFor(session);
+            return location == target ? null : target;
+          }
+          if (location == _login || location == _changePassword) return '/';
           return null;
         },
       );
+
+  static String _startFor(SessionCubit session) => switch (session.state) {
+        SessionStatus.unauthenticated => _login,
+        SessionStatus.passwordChangeRequired => _changePassword,
+        SessionStatus.authenticated => '/',
+      };
 }
 
 /// Bridges a [Stream] to the [Listenable] that GoRouter re-evaluates

@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class TokenStorage {
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
+  static const _mustChangePasswordKey = 'must_change_password';
 
   final FlutterSecureStorage _storage;
 
@@ -28,8 +29,22 @@ class TokenStorage {
 
   Future<bool> hasSession() async => (await readRefreshToken()) != null;
 
+  /// Set after a login that returned `mustChangePassword: true`, so the
+  /// change-password screen is still enforced after an app restart.
+  Future<bool> readMustChangePassword() async =>
+      (await _storage.read(key: _mustChangePasswordKey)) == 'true';
+
+  Future<void> saveMustChangePassword(bool value) async {
+    if (value) {
+      await _storage.write(key: _mustChangePasswordKey, value: 'true');
+    } else {
+      await _storage.delete(key: _mustChangePasswordKey);
+    }
+  }
+
   Future<void> clear() async {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _mustChangePasswordKey);
   }
 }

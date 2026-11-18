@@ -25,9 +25,11 @@ Future<void> main() async {
 
   final tokenStorage = TokenStorage();
   final sessionCubit = SessionCubit(
-    await tokenStorage.hasSession()
-        ? SessionStatus.authenticated
-        : SessionStatus.unauthenticated,
+    !await tokenStorage.hasSession()
+        ? SessionStatus.unauthenticated
+        : await tokenStorage.readMustChangePassword()
+            ? SessionStatus.passwordChangeRequired
+            : SessionStatus.authenticated,
   );
 
   runApp(

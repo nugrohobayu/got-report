@@ -23,4 +23,8 @@ class ApiEndpoints {
   static const String refresh = '/api/v1/auth/staff-app/refresh';
   static const String logout = '/api/v1/auth/staff-app/logout';
   static const String forgotPassword = '/api/v1/auth/password/forgot';
+
+  // Account (all staff, also used by mobile)
+  /// `PUT`; revokes every session, including the current one.
+  static const String changePassword = '/api/v1/admin/account/password';
 }

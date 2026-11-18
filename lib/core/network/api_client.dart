@@ -51,6 +51,10 @@ class ApiClient {
     return _send(() => _dio.post(path, data: body));
   }
 
+  Future<dynamic> put(String path, {Object? body}) {
+    return _send(() => _dio.put(path, data: body));
+  }
+
   Future<dynamic> _send(Future<Response> Function() request) async {
     try {
       final response = await request();

@@ -15,7 +15,7 @@ class AuthRepositoryImpl implements AuthRepository {
   });
 
   @override
-  Future<void> login({required String email, required String password}) {
+  Future<bool> login({required String email, required String password}) {
     return _guard(() async {
       final token = await remoteDataSource.login(
         email: email,
@@ -25,6 +25,23 @@ class AuthRepositoryImpl implements AuthRepository {
         accessToken: token.accessToken,
         refreshToken: token.refreshToken,
       );
+      await tokenStorage.saveMustChangePassword(token.mustChangePassword);
+      return token.mustChangePassword;
+    });
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    return _guard(() async {
+      await remoteDataSource.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      // The server revoked every session, so the stored tokens are dead.
+      await tokenStorage.clear();
     });
   }
 

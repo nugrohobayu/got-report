@@ -9,7 +9,14 @@ class _FakeAuthRepository implements AuthRepository {
   int logoutCalls = 0;
 
   @override
-  Future<void> login({required String email, required String password}) async {}
+  Future<bool> login({required String email, required String password}) async =>
+      false;
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
 
   @override
   Future<void> logout() async => logoutCalls++;

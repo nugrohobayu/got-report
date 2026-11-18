@@ -1,17 +1,31 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/core/error/failures.dart';
+import 'package:got_report/features/change_password/presentation/bloc/change_password_cubit.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
 import 'package:got_report/features/login/presentation/bloc/login_cubit.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   Failure? loginFailure;
+  Failure? changePasswordFailure;
+  bool mustChangePassword = false;
   String? lastEmail;
+  String? lastNewPassword;
 
   @override
-  Future<void> login({required String email, required String password}) async {
+  Future<bool> login({required String email, required String password}) async {
     lastEmail = email;
     if (loginFailure != null) throw loginFailure!;
+    return mustChangePassword;
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    lastNewPassword = newPassword;
+    if (changePasswordFailure != null) throw changePasswordFailure!;
   }
 
   @override
@@ -45,6 +59,68 @@ void main() {
     expect(repo.lastEmail, 'teknisi@contoh.id');
     expect(cubit.state.status, LoginStatus.success);
     expect(session.state, SessionStatus.authenticated);
+  });
+
+  test('mustChangePassword sends the session to change password', () async {
+    repo.mustChangePassword = true;
+
+    await cubit.login(email: 'teknisi@contoh.id', password: 'Sementara-1');
+
+    expect(cubit.state.status, LoginStatus.success);
+    expect(session.state, SessionStatus.passwordChangeRequired);
+    expect(session.isAuthenticated, isFalse);
+  });
+
+  group('ChangePasswordCubit', () {
+    late ChangePasswordCubit changeCubit;
+
+    setUp(() {
+      session.setPasswordChangeRequired();
+      changeCubit =
+          ChangePasswordCubit(authRepository: repo, sessionCubit: session);
+    });
+
+    tearDown(() => changeCubit.close());
+
+    Future<void> submit(String current, String next, String confirm) =>
+        changeCubit.submit(
+          currentPassword: current,
+          newPassword: next,
+          confirmPassword: confirm,
+        );
+
+    test('success sends the user back to login', () async {
+      await submit('Sementara-1', 'Baru-12345', 'Baru-12345');
+
+      expect(repo.lastNewPassword, 'Baru-12345');
+      expect(changeCubit.state.errorMessage, isNull);
+      expect(changeCubit.state.successMessage, isNotNull);
+      // The server revokes every session after a password change.
+      expect(session.state, SessionStatus.unauthenticated);
+    });
+
+    test('invalid input is rejected without calling the API', () async {
+      await submit('Sementara-1', 'pendek', 'pendek');
+      expect(changeCubit.state.errorMessage, contains('minimal'));
+
+      await submit('Sementara-1', 'Baru-12345', 'Beda-12345');
+      expect(changeCubit.state.errorMessage, contains('tidak sama'));
+
+      await submit('Sama-12345', 'Sama-12345', 'Sama-12345');
+      expect(changeCubit.state.errorMessage, contains('berbeda'));
+
+      expect(repo.lastNewPassword, isNull);
+      expect(session.state, SessionStatus.passwordChangeRequired);
+    });
+
+    test('backend error keeps the user on change password', () async {
+      repo.changePasswordFailure = const ServerFailure('Kata sandi lama salah');
+
+      await submit('salah', 'Baru-12345', 'Baru-12345');
+
+      expect(changeCubit.state.errorMessage, 'Kata sandi lama salah');
+      expect(session.state, SessionStatus.passwordChangeRequired);
+    });
   });
 
   test('backend error message is shown as-is', () async {

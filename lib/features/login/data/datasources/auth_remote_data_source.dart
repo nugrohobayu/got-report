@@ -11,6 +11,12 @@ abstract class AuthRemoteDataSource {
   Future<void> logout({required String refreshToken});
 
   Future<void> forgotPassword({required String email});
+
+  /// The server revokes every session afterwards.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -32,7 +38,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> logout({required String refreshToken}) async {
-    // TODO: send deviceFid too once push notifications are registered.
     await apiClient.post(
       ApiEndpoints.logout,
       body: {'refreshToken': refreshToken},
@@ -44,6 +49,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     await apiClient.post(
       ApiEndpoints.forgotPassword,
       body: {'accountType': 'STAFF', 'email': email},
+    );
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await apiClient.put(
+      ApiEndpoints.changePassword,
+      body: {'currentPassword': currentPassword, 'newPassword': newPassword},
     );
   }
 }
