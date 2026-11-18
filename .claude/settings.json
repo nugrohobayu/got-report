@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"d:/Projects/mobile/myapp/.claude/skills/jira-implement-ticket\")",
+      "Edit(/.claude/skills/jira-implement-ticket/**)"
+    ],
+    "additionalDirectories": [
+      "d:\\Projects\\mobile\\myapp\\.claude\\skills"
+    ]
+  }
+}
