@@ -17,8 +17,6 @@ class AppConstants {
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String posts = '/posts';
-
   // Auth (staff app / mobile)
   static const String authPrefix = '/api/v1/auth/';
   static const String login = '/api/v1/auth/staff-app/login';

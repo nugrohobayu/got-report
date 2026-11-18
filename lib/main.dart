@@ -14,9 +14,6 @@ import 'package:got_report/core/theme/theme_cubit.dart';
 import 'package:got_report/features/login/data/datasources/auth_remote_data_source.dart';
 import 'package:got_report/features/login/data/repositories/auth_repository_impl.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
-import 'package:got_report/features/posts/data/datasources/posts_remote_data_source.dart';
-import 'package:got_report/features/posts/data/repositories/posts_repository_impl.dart';
-import 'package:got_report/features/posts/domain/repositories/posts_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -89,14 +86,6 @@ class _MyAppState extends State<MyApp> {
             remoteDataSource: AuthRemoteDataSourceImpl(_apiClient),
             tokenStorage: widget.tokenStorage,
           ),
-        ),
-        RepositoryProvider<PostsRemoteDataSource>(
-          create: (context) =>
-              PostsRemoteDataSourceImpl(context.read<ApiClient>()),
-        ),
-        RepositoryProvider<PostsRepository>(
-          create: (context) =>
-              PostsRepositoryImpl(context.read<PostsRemoteDataSource>()),
         ),
       ],
       child: MultiBlocProvider(

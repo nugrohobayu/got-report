@@ -7,9 +7,6 @@ import 'package:got_report/core/utils/app_logger.dart';
 import 'package:got_report/features/download_test/presentation/pages/download_test_page.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
 import 'package:got_report/features/login/presentation/pages/login_page.dart';
-import 'package:got_report/features/posts/domain/entities/post.dart';
-import 'package:got_report/features/posts/presentation/pages/post_detail_page.dart';
-import 'package:got_report/features/posts/presentation/pages/posts_page.dart';
 
 class AppRouter {
   AppRouter._();
@@ -30,19 +27,6 @@ class AppRouter {
             path: '/',
             name: 'home',
             builder: (context, state) => const HomePage(),
-          ),
-          GoRoute(
-            path: '/posts',
-            name: 'posts',
-            builder: (context, state) => const PostsPage(),
-          ),
-          GoRoute(
-            path: '/posts/:id',
-            name: 'postDetail',
-            builder: (context, state) {
-              final post = state.extra as Post;
-              return PostDetailPage(post: post);
-            },
           ),
           GoRoute(
             path: '/download-test',
