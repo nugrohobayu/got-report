@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:got_report/features/login/presentation/widgets/logout_dialog.dart';
 
 /// Home screen sliced from Figma "iPhone 11 Pro / X - 1" (node 113:177).
 ///
@@ -144,8 +145,37 @@ class _TopBar extends StatelessWidget {
                   ),
             ),
           ),
-          _IconTap(asset: _HomeAssets.settings, onTap: () {}),
+          _IconTap(
+            asset: _HomeAssets.settings,
+            onTap: () => _showSettingsSheet(context),
+          ),
         ],
+      ),
+    );
+  }
+
+  void _showSettingsSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          minTileHeight: 56,
+          leading: const Icon(Icons.logout, color: _HomeColors.red),
+          title: const Text(
+            'Keluar',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: _HomeColors.red,
+            ),
+          ),
+          onTap: () {
+            Navigator.of(sheetContext).pop();
+            confirmAndLogout(context);
+          },
+        ),
       ),
     );
   }
