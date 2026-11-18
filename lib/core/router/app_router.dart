@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/core/utils/app_logger.dart';
 import 'package:got_report/features/download_test/presentation/pages/download_test_page.dart';
+import 'package:got_report/features/home/presentation/pages/home_page.dart';
 import 'package:got_report/features/login/presentation/pages/login_page.dart';
 import 'package:got_report/features/posts/domain/entities/post.dart';
 import 'package:got_report/features/posts/presentation/pages/post_detail_page.dart';
@@ -10,39 +14,66 @@ import 'package:got_report/features/posts/presentation/pages/posts_page.dart';
 class AppRouter {
   AppRouter._();
 
-  static final GoRouter router = GoRouter(
-    initialLocation: '/login',
-    observers: [_LoggingNavigatorObserver()],
-    routes: [
-      GoRoute(
-        path: '/login',
-        name: 'login',
-        builder: (context, state) => const LoginPage(),
-      ),
-      GoRoute(
-        path: '/',
-        name: 'posts',
-        builder: (context, state) => const PostsPage(),
-      ),
-      GoRoute(
-        path: '/posts/:id',
-        name: 'postDetail',
-        builder: (context, state) {
-          final post = state.extra as Post;
-          return PostDetailPage(post: post);
+  /// Routes are guarded by [session]: logged-out users always land on
+  /// `/login`, logged-in users never see it.
+  static GoRouter create(SessionCubit session) => GoRouter(
+        initialLocation: session.isAuthenticated ? '/' : '/login',
+        refreshListenable: _StreamListenable(session.stream),
+        observers: [_LoggingNavigatorObserver()],
+        routes: [
+          GoRoute(
+            path: '/login',
+            name: 'login',
+            builder: (context, state) => const LoginPage(),
+          ),
+          GoRoute(
+            path: '/',
+            name: 'home',
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/posts',
+            name: 'posts',
+            builder: (context, state) => const PostsPage(),
+          ),
+          GoRoute(
+            path: '/posts/:id',
+            name: 'postDetail',
+            builder: (context, state) {
+              final post = state.extra as Post;
+              return PostDetailPage(post: post);
+            },
+          ),
+          GoRoute(
+            path: '/download-test',
+            name: 'downloadTest',
+            builder: (context, state) => const DownloadTestPage(),
+          ),
+        ],
+        redirect: (context, state) {
+          AppLogger.routing('Navigating to ${state.uri}');
+          final onLogin = state.matchedLocation == '/login';
+          if (!session.isAuthenticated) return onLogin ? null : '/login';
+          if (onLogin) return '/';
+          return null;
         },
-      ),
-      GoRoute(
-        path: '/download-test',
-        name: 'downloadTest',
-        builder: (context, state) => const DownloadTestPage(),
-      ),
-    ],
-    redirect: (context, state) {
-      AppLogger.routing('Navigating to ${state.uri}');
-      return null;
-    },
-  );
+      );
+}
+
+/// Bridges a [Stream] to the [Listenable] that GoRouter re-evaluates
+/// redirects on.
+class _StreamListenable extends ChangeNotifier {
+  late final StreamSubscription<dynamic> _subscription;
+
+  _StreamListenable(Stream<dynamic> stream) {
+    _subscription = stream.listen((_) => notifyListeners());
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 }
 
 class _LoggingNavigatorObserver extends NavigatorObserver {

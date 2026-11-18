@@ -1,12 +1,16 @@
-/// Thrown by data sources when the server responds with a non-2xx status code.
+/// Thrown by data sources when the server responds with an error, either a
+/// non-2xx status code or a `{success: false, error: {code, message}}` body.
 class ServerException implements Exception {
   final String message;
   final int? statusCode;
 
-  const ServerException({required this.message, this.statusCode});
+  /// Backend error code, e.g. `AUTH_INVALID_CREDENTIALS`, `VALIDATION_ERROR`.
+  final String? code;
+
+  const ServerException({required this.message, this.statusCode, this.code});
 
   @override
-  String toString() => 'ServerException($statusCode): $message';
+  String toString() => 'ServerException($statusCode, $code): $message';
 }
 
 /// Thrown by data sources when the device has no network connectivity
@@ -14,7 +18,9 @@ class ServerException implements Exception {
 class NetworkException implements Exception {
   final String message;
 
-  const NetworkException([this.message = 'No internet connection']);
+  const NetworkException([
+    this.message = 'Tidak dapat terhubung ke server. Periksa koneksi internet.',
+  ]);
 
   @override
   String toString() => 'NetworkException: $message';
@@ -28,7 +34,9 @@ class NetworkException implements Exception {
 class ApiTimeoutException implements Exception {
   final String message;
 
-  const ApiTimeoutException([this.message = 'Request timed out']);
+  const ApiTimeoutException([
+    this.message = 'Server terlalu lama merespons. Coba lagi.',
+  ]);
 
   @override
   String toString() => 'ApiTimeoutException: $message';
@@ -39,7 +47,9 @@ class ApiTimeoutException implements Exception {
 class ParsingException implements Exception {
   final String message;
 
-  const ParsingException([this.message = 'Failed to parse response']);
+  const ParsingException([
+    this.message = 'Respons server tidak dapat dibaca.',
+  ]);
 
   @override
   String toString() => 'ParsingException: $message';

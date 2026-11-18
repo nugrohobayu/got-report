@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/core/theme/theme_cubit.dart';
+import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
 import 'package:got_report/core/widgets/error_view.dart';
 import 'package:got_report/features/posts/domain/repositories/posts_repository.dart';
 import 'package:got_report/features/posts/domain/usecases/get_posts.dart';
@@ -43,6 +45,15 @@ class _PostsView extends StatelessWidget {
             tooltip: 'Toggle theme',
             onPressed: () => context.read<ThemeCubit>().toggleTheme(),
           ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Keluar',
+            onPressed: () async {
+              final session = context.read<SessionCubit>();
+              await context.read<AuthRepository>().logout();
+              session.setUnauthenticated();
+            },
+          ),
         ],
       ),
       body: BlocBuilder<PostsBloc, PostsState>(
@@ -72,7 +83,8 @@ class _PostsView extends StatelessWidget {
                     final post = state.posts[index];
                     return PostListItem(
                       post: post,
-                      onTap: () => context.push('/posts/${post.id}', extra: post),
+                      onTap: () =>
+                          context.push('/posts/${post.id}', extra: post),
                     );
                   },
                 ),

@@ -13,7 +13,13 @@ abstract class Failure extends Equatable {
 }
 
 class ServerFailure extends Failure {
-  const ServerFailure(super.message);
+  /// Backend error code, e.g. `AUTH_INVALID_CREDENTIALS`.
+  final String? code;
+
+  const ServerFailure(super.message, {this.code});
+
+  @override
+  List<Object?> get props => [message, code];
 }
 
 class NetworkFailure extends Failure {

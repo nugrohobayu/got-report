@@ -1,27 +1,26 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:got_report/core/auth/session_cubit.dart';
+import 'package:got_report/core/auth/token_storage.dart';
 import 'package:got_report/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('App shows the Posts page with a loading indicator', (
-    WidgetTester tester,
-  ) async {
-    dotenv.testLoad(
-      fileInput: 'BASE_URL=https://jsonplaceholder.typicode.com',
-    );
+  testWidgets('Logged-out user lands on the login page', (tester) async {
+    dotenv.testLoad(fileInput: 'BASE_URL=http://localhost');
     SharedPreferences.setMockInitialValues({});
     final sharedPreferences = await SharedPreferences.getInstance();
 
-    await tester.pumpWidget(MyApp(sharedPreferences: sharedPreferences));
+    await tester.pumpWidget(
+      MyApp(
+        sharedPreferences: sharedPreferences,
+        tokenStorage: TokenStorage(),
+        sessionCubit: SessionCubit(SessionStatus.unauthenticated),
+      ),
+    );
+    await tester.pump();
 
-    expect(find.text('Posts'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-    // Dio schedules its request pipeline via an internal zero-duration
-    // Timer; flush it so it doesn't trip the "pending timer" test
-    // invariant once this callback returns.
-    await tester.pump(Duration.zero);
+    expect(find.text('Masuk ke Akun Anda'), findsOneWidget);
+    expect(find.text('Masuk'), findsOneWidget);
   });
 }

@@ -22,7 +22,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       emit(state.copyWith(status: PostsStatus.success, posts: posts));
     } on Failure catch (failure) {
       emit(
-        state.copyWith(status: PostsStatus.error, errorMessage: failure.message),
+        state.copyWith(
+            status: PostsStatus.error, errorMessage: failure.message),
       );
     } catch (e) {
       emit(

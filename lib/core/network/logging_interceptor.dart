@@ -16,9 +16,9 @@ class LoggingInterceptor extends Interceptor {
             ..writeln(':: PROCESSING ::')
             ..writeln('[${options.method}] : ${options.uri}')
             ..writeln('[Request Headers] : ')
-            ..writeln('\t${options.headers}')
+            ..writeln('\t${_redact(options.headers)}')
             ..writeln('[Request Body] : ')
-            ..write('\t${options.data ?? '-'}'))
+            ..write('\t${_redact(options.data) ?? '-'}'))
           .toString(),
     );
     handler.next(options);
@@ -55,9 +55,9 @@ class LoggingInterceptor extends Interceptor {
       ..writeln(':: FINALLY ::')
       ..writeln('[${options.method}] : ${options.uri}')
       ..writeln('[Request Headers] : ')
-      ..writeln('\t${options.headers}')
+      ..writeln('\t${_redact(options.headers)}')
       ..writeln('[Request Body] : ')
-      ..writeln('\t${options.data ?? '-'}');
+      ..writeln('\t${_redact(options.data) ?? '-'}');
 
     if (error != null) {
       buffer
@@ -70,11 +70,36 @@ class LoggingInterceptor extends Interceptor {
         ..writeln('[Response Headers] : ')
         ..writeln('\t$responseHeaders')
         ..writeln('[Response Body Raw] : ')
-        ..writeln('\t${_truncate(responseBody?.toString() ?? '')}');
+        ..writeln('\t${_truncate(_redact(responseBody)?.toString() ?? '')}');
     }
 
     buffer.write('[TIME CALL] --> ${stopwatch?.elapsed.inMilliseconds ?? 0}ms');
     AppLogger.api(buffer.toString());
+  }
+
+  static const _sensitiveKeys = {
+    'authorization',
+    'password',
+    'newpassword',
+    'accesstoken',
+    'refreshtoken',
+    'token',
+  };
+
+  /// Masks passwords and tokens so they never reach the logs.
+  dynamic _redact(dynamic value) {
+    if (value is Map) {
+      return value.map(
+        (key, v) => MapEntry(
+          key,
+          _sensitiveKeys.contains(key.toString().toLowerCase())
+              ? '***'
+              : _redact(v),
+        ),
+      );
+    }
+    if (value is List) return value.map(_redact).toList();
+    return value;
   }
 
   String _truncate(String body, {int maxLength = 1000}) {
