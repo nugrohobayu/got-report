@@ -129,6 +129,16 @@ Kode error yang disepakati: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATIO
 ---
 
 # Bagian Khusus Repo Ini
+## Sumber kontrak API (baca sebelum memakai endpoint)
+**Spesifikasi API yang berlaku ada di tab `API` pada Sheet tim**, bukan di tabel "Kontrak API" di atas (itu draf awal; path asli memakai prefix `/api/v1/...`, mis. login HP `/api/v1/auth/staff-app/login`, tugas HP `/api/v1/field/tasks`).
+
+- Link: https://claude.ai/cowork/cse_01Wim4d1nR6hg2XLvhy9M1kx?artifact=4f4549ef-68f2-4aee-b013-e5a7804811e8#sheet-sht_p7tes3vajw.0 (artifact id `4f4549ef-68f2-4aee-b013-e5a7804811e8`, sama dengan Sheet di Referensi tim)
+- Cara baca: Sheet ini adalah artifact tipe Sheets. Baca lewat konektor **Claude Docs** (`guide` topic.sheets → `read` project untuk node workbook → `readCells` sheet `API`, mulai `A1`, sesuai `filledRange` dari `readSheets`). Jangan WebFetch link-nya.
+- Kolom: Method, Endpoint, Dipakai oleh, Fungsi, Status (`Sudah`/`Belum`), Izin / catatan, **FU FE & Mobile** (catatan khusus untuk mobile), Contoh request, Contoh response (JSON nyata dari backend). Baris catatan di bawah tabel menjelaskan envelope respons, paginasi, dan prefix akses (`/field` = petugas di HP).
+- Selalu baca ulang sebelum membuat/mengubah pemanggilan API: isinya diperbarui Rofik dan bisa berubah. Pakai hanya endpoint dengan Status `Sudah`; jika `Belum`, pakai `FakeApi`.
+- Jangan menebak path/field. Jika endpoint yang dibutuhkan tidak ada di tab API, tanyakan ke user (kabari Rofik), jangan mengarang.
+- Sheet hanya dibaca. Jangan menulis ke Sheet kecuali user memintanya.
+
 ## Stack
 - Flutter (Dart, null safety), target Android dulu (demo), iOS jika sempat
 - bloc untuk state, go_router untuk navigasi
