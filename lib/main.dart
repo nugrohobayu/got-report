@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:got_report/core/network/api_client.dart';
 import 'package:got_report/core/network/download_service.dart';
 import 'package:got_report/core/router/app_router.dart';
@@ -13,6 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Fonts are bundled in assets/google_fonts; never download at runtime.
+  GoogleFonts.config.allowRuntimeFetching = false;
   await dotenv.load(fileName: '.env');
   final sharedPreferences = await SharedPreferences.getInstance();
 
@@ -46,7 +49,7 @@ class MyApp extends StatelessWidget {
         child: BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
             return MaterialApp.router(
-              title: 'MyApp',
+              title: 'Got Report',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.light,
               darkTheme: AppTheme.dark,

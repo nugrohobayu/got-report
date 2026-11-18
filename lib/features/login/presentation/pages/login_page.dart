@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:got_report/core/theme/app_colors.dart';
 
 /// Login screen sliced from Figma "Login Version 3" (node 3:16852).
 class LoginPage extends StatefulWidget {
@@ -108,7 +109,7 @@ class _Headline extends StatelessWidget {
         Text(
           'Masuk ke Akun Anda',
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 32,
             fontWeight: FontWeight.w700,
             height: 1.2,
@@ -120,7 +121,7 @@ class _Headline extends StatelessWidget {
         Text(
           'Masukkan email dan kata sandi untuk masuk',
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
             fontWeight: FontWeight.w500,
             height: 1.4,
@@ -309,7 +310,7 @@ class _GoogleButton extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 'Lanjutkan dengan Google',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   height: 1.4,
@@ -378,7 +379,7 @@ class _LoginTextField extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       borderSide: const BorderSide(color: _LoginColors.stroke),
     );
-    final textStyle = GoogleFonts.inter(
+    final textStyle = GoogleFonts.plusJakartaSans(
       fontSize: 14,
       fontWeight: FontWeight.w500,
       height: 1.4,
@@ -446,7 +447,7 @@ class _PrimaryButton extends StatelessWidget {
         borderRadius: radius,
         boxShadow: const [
           BoxShadow(
-            color: Color(0x7A253EA7),
+            color: Color(0x7A12305A),
             offset: Offset(0, 1),
             blurRadius: 2,
           ),
@@ -465,8 +466,8 @@ class _PrimaryButton extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              // White 12% → 0% overlay on #1D61E7, pre-blended.
-              colors: [Color(0xFF3A75EA), _LoginColors.buttonBlue],
+              // White 12% → 0% overlay on brand blue #2F7CC4, pre-blended.
+              colors: [Color(0xFF4A8DCC), _LoginColors.buttonBlue],
             ),
           ),
           child: InkWell(
@@ -474,7 +475,7 @@ class _PrimaryButton extends StatelessWidget {
             child: Center(
               child: Text(
                 label,
-                style: GoogleFonts.inter(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   height: 1.4,
@@ -498,7 +499,7 @@ class _LoginText {
     required Color color,
     double height = 1.4,
   }) =>
-      GoogleFonts.inter(
+      GoogleFonts.plusJakartaSans(
         fontSize: 12,
         fontWeight: weight,
         height: height,
@@ -517,15 +518,15 @@ class _LoginLayout {
 class _LoginColors {
   _LoginColors._();
 
-  static const background = Color(0xFFF6F8FA);
-  static const headerBlue = Color(0xFF2567E8);
+  static const background = AppColors.background;
+  static const headerBlue = AppColors.navy;
   static const headlineText = Color(0xFFEEEEEE);
-  static const textPrimary = Color(0xFF1A1C1E);
+  static const textPrimary = AppColors.textPrimary;
   static const grey = Color(0xFF6C7278);
   static const placeholder = Color(0xFFACB5BB);
-  static const link = Color(0xFF4D81E7);
+  static const link = AppColors.blue;
   static const stroke = Color(0xFFEDF1F3);
   static const googleBorder = Color(0xFFEFF0F6);
-  static const buttonBlue = Color(0xFF1D61E7);
-  static const buttonRing = Color(0xFF375DFB);
+  static const buttonBlue = AppColors.blue;
+  static const buttonRing = AppColors.blue;
 }
