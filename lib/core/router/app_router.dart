@@ -7,6 +7,7 @@ import 'package:got_report/core/utils/app_logger.dart';
 import 'package:got_report/features/change_password/presentation/pages/change_password_page.dart';
 import 'package:got_report/features/download_test/presentation/pages/download_test_page.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
+import 'package:got_report/features/kalender_tugas/presentation/pages/task_calendar_page.dart';
 import 'package:got_report/features/login/presentation/pages/login_page.dart';
 
 class AppRouter {
@@ -14,6 +15,9 @@ class AppRouter {
 
   static const _login = '/login';
   static const _changePassword = '/change-password';
+
+  /// Route names, for `context.pushNamed`.
+  static const taskCalendar = 'taskCalendar';
 
   /// Routes are guarded by [session]: logged-out users always land on
   /// `/login`, users who must change their password are kept on
@@ -37,6 +41,11 @@ class AppRouter {
             path: '/',
             name: 'home',
             builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/kalender',
+            name: taskCalendar,
+            builder: (context, state) => const TaskCalendarPage(),
           ),
           GoRoute(
             path: '/download-test',

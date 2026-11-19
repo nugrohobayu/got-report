@@ -43,7 +43,8 @@ class ApiClient {
   /// downloads) can share the same base configuration and interceptors.
   Dio get dio => _dio;
 
-  Future<dynamic> get(String path, {Map<String, String>? queryParameters}) {
+  /// List values are sent as repeated keys, e.g. `status=A&status=B`.
+  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters}) {
     return _send(() => _dio.get(path, queryParameters: queryParameters));
   }
 
