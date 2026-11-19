@@ -14,6 +14,13 @@ import 'package:got_report/core/theme/theme_cubit.dart';
 import 'package:got_report/features/login/data/datasources/auth_remote_data_source.dart';
 import 'package:got_report/features/login/data/repositories/auth_repository_impl.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
+import 'package:got_report/features/profil/data/datasources/profile_remote_data_source.dart';
+import 'package:got_report/features/profil/data/repositories/profile_repository_impl.dart';
+import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
+import 'package:got_report/features/tugas_hari_ini/data/datasources/task_remote_data_source.dart';
+import 'package:got_report/features/tugas_hari_ini/data/repositories/task_repository_impl.dart';
+import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -21,6 +28,7 @@ Future<void> main() async {
   // Fonts are bundled in assets/google_fonts; never download at runtime.
   GoogleFonts.config.allowRuntimeFetching = false;
   await dotenv.load(fileName: '.env');
+  await initializeDateFormatting('id_ID');
   final sharedPreferences = await SharedPreferences.getInstance();
 
   final tokenStorage = TokenStorage();
@@ -88,6 +96,14 @@ class _MyAppState extends State<MyApp> {
             remoteDataSource: AuthRemoteDataSourceImpl(_apiClient),
             tokenStorage: widget.tokenStorage,
           ),
+        ),
+        RepositoryProvider<TaskRepository>(
+          create: (_) =>
+              TaskRepositoryImpl(TaskRemoteDataSourceImpl(_apiClient)),
+        ),
+        RepositoryProvider<ProfileRepository>(
+          create: (_) =>
+              ProfileRepositoryImpl(ProfileRemoteDataSourceImpl(_apiClient)),
         ),
       ],
       child: MultiBlocProvider(

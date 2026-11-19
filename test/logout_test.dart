@@ -2,8 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:got_report/core/auth/session_cubit.dart';
+import 'package:got_report/core/theme/theme_cubit.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
+import 'package:got_report/features/profil/domain/entities/user_profile.dart';
+import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
+import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class _FakeProfileRepository implements ProfileRepository {
+  @override
+  Future<UserProfile> getMe() async => const UserProfile(
+        id: 'u1',
+        fullName: 'Teknisi A',
+        email: 'teknisi@contoh.id',
+        roleNames: ['Petugas'],
+      );
+}
 
 class _FakeAuthRepository implements AuthRepository {
   int logoutCalls = 0;
@@ -25,7 +42,18 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> forgotPassword({required String email}) async {}
 }
 
+class _EmptyTaskRepository implements TaskRepository {
+  @override
+  Future<List<TaskSummary>> getMyTasks({
+    required DateTime from,
+    required DateTime to,
+  }) async =>
+      const [];
+}
+
 void main() {
+  setUpAll(() => initializeDateFormatting('id_ID'));
+
   late _FakeAuthRepository repo;
   late SessionCubit session;
 
@@ -37,18 +65,32 @@ void main() {
   tearDown(() => session.close());
 
   Future<void> openLogoutConfirm(WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
-      RepositoryProvider<AuthRepository>.value(
-        value: repo,
-        child: BlocProvider.value(
-          value: session,
+      MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<AuthRepository>.value(value: repo),
+          RepositoryProvider<TaskRepository>.value(
+            value: _EmptyTaskRepository(),
+          ),
+          RepositoryProvider<ProfileRepository>.value(
+            value: _FakeProfileRepository(),
+          ),
+        ],
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: session),
+            BlocProvider(create: (_) => ThemeCubit(prefs)),
+          ],
           child: const MaterialApp(home: HomePage()),
         ),
       ),
     );
-    // Settings is the second icon in the top bar (after menu).
-    await tester.tap(find.byType(InkResponse).at(1));
+    // Logout lives in the Profil tab of the bottom navbar.
+    await tester.tap(find.text('Profil'));
     await tester.pumpAndSettle();
+    expect(find.text('Teknisi A'), findsOneWidget);
     await tester.tap(find.text('Keluar'));
     await tester.pumpAndSettle();
     expect(find.text('Keluar dari aplikasi?'), findsOneWidget);

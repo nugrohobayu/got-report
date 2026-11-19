@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:got_report/features/login/presentation/widgets/logout_dialog.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:got_report/core/router/app_router.dart';
+import 'package:got_report/core/utils/date_formatter.dart';
+import 'package:got_report/core/utils/load_status.dart';
+import 'package:got_report/core/widgets/error_view.dart';
+import 'package:got_report/features/profil/presentation/pages/profile_page.dart';
+import 'package:got_report/features/riwayat_penugasan/presentation/pages/task_history_page.dart';
+import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:got_report/features/tugas_hari_ini/presentation/bloc/today_tasks_cubit.dart';
+import 'package:got_report/features/tugas_hari_ini/presentation/widgets/nearest_task_card.dart';
+import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_card.dart';
 
-/// Home screen sliced from Figma "iPhone 11 Pro / X - 1" (node 113:177).
-///
-/// Content is still static placeholder data from the design; replace it with
-/// real data once the feature is wired up.
+/// Main shell after login, with a bottom navbar of three tabs:
+/// Beranda (today's tasks), Riwayat (assignment history) and Profil.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -17,187 +25,303 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _navIndex = 0;
 
+  /// Tabs are built (and load their data) only once first opened, then
+  /// kept alive by the [IndexedStack].
+  final Set<int> _opened = {0};
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.white,
         body: SafeArea(
           bottom: false,
           child: Column(
             children: [
-              const _TopBar(),
+              _TopBar(title: _tabs[_navIndex].title),
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.only(top: 40, bottom: 40),
-                  children: const [
-                    _SectionTitle('News'),
-                    SizedBox(height: 15),
-                    // Carousel already ends with 40px (shadow room).
-                    _NewsCarousel(),
-                    _SectionTitle('Daily Tasks:'),
-                    SizedBox(height: 15),
-                    _DailyTasks(),
-                    SizedBox(height: 15),
-                    _OverallProgress(progress: 0.6),
-                    SizedBox(height: 40),
-                    _InfoCard(
-                      icon: _HomeAssets.calendar,
-                      arrow: _HomeAssets.arrowRightPurple,
-                      title: 'How was your day?',
-                      subtitle: 'Lorem ipsum dolor sit amet, consectetur '
-                          'adipscing elit. Ut vel odio en urna ultrices',
-                      background: _HomeColors.purpleTint,
-                      titleColor: _HomeColors.textDark,
-                      subtitleColor: _HomeColors.textDark,
-                      subtitleOpacity: 0.5,
-                    ),
-                    SizedBox(height: 10),
-                    _InfoCard(
-                      icon: _HomeAssets.clock,
-                      arrow: _HomeAssets.arrowRightRed,
-                      title: 'Current Transist: 3rd House',
-                      subtitle: 'This is demonstrate siblings, hobbies, '
-                          'efforts, confidence, friends and short trips',
-                      background: _HomeColors.redTint,
-                      titleColor: _HomeColors.red,
-                      subtitleColor: _HomeColors.redMuted,
-                      subtitleOpacity: 0.7,
-                    ),
+                child: IndexedStack(
+                  index: _navIndex,
+                  children: [
+                    for (var i = 0; i < _tabs.length; i++)
+                      _opened.contains(i)
+                          ? _tabs[i].builder()
+                          : const SizedBox.shrink(),
                   ],
                 ),
               ),
             ],
           ),
         ),
-        bottomNavigationBar: _BottomNav(
+        bottomNavigationBar: NavigationBar(
           selectedIndex: _navIndex,
-          onSelected: (i) => setState(() => _navIndex = i),
+          onDestinationSelected: (i) => setState(() {
+            _navIndex = i;
+            _opened.add(i);
+          }),
+          destinations: [
+            for (final tab in _tabs)
+              NavigationDestination(
+                icon: Icon(tab.icon),
+                selectedIcon: Icon(tab.selectedIcon),
+                label: tab.label,
+              ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _HomeColors {
-  _HomeColors._();
+class _Tab {
+  final String label;
+  final String title;
+  final IconData icon;
+  final IconData selectedIcon;
+  final Widget Function() builder;
 
-  static const Color title = Color(0xFF595085);
-  static const Color textDark = Color(0xFF403572);
-  static const Color purpleTint = Color(0xFFF6F5FB);
-  static const Color red = Color(0xFFFF5648);
-  static const Color redLabel = Color(0xFFFF3726);
-  static const Color redTint = Color(0xFFFFF4F4);
-  static const Color redMuted = Color(0xFFA27A7A);
-  static const Color teal = Color(0xFF479696);
-  static const Color tealTint = Color(0xFFF5F9F9);
-  static const Color taskLabelPurple = Color(0xFF61598B);
-  static const Color pink = Color(0xFFC93F8D);
-  static const Color progressTrack = Color(0xFFFDF9FB);
-  static const Color navActive = Color(0xFF3D3270);
-  static const Color navInactive = Color(0xFF8B97A8);
+  const _Tab({
+    required this.label,
+    required this.title,
+    required this.icon,
+    required this.selectedIcon,
+    required this.builder,
+  });
 }
 
-class _HomeAssets {
-  _HomeAssets._();
-
-  static const _dir = 'assets/images/home';
-  static const menu = '$_dir/menu.svg';
-  static const settings = '$_dir/settings.svg';
-  static const calendar = '$_dir/calendar.svg';
-  static const clock = '$_dir/clock.svg';
-  static const arrowRightPurple = '$_dir/arrow_right_purple.svg';
-  static const arrowRightRed = '$_dir/arrow_right_red.svg';
-  static const newsStars1 = '$_dir/news_stars_1.svg';
-  static const newsStars2 = '$_dir/news_stars_2.svg';
-  static const newsStars3 = '$_dir/news_stars_3.svg';
-  static const badgePurple = '$_dir/task_badge_purple.svg';
-  static const badgeRed = '$_dir/task_badge_red.svg';
-  static const badgeTeal = '$_dir/task_badge_teal.svg';
-  static const navIcons = [
-    '$_dir/nav_home.svg',
-    '$_dir/nav_user.svg',
-    '$_dir/nav_message.svg',
-    '$_dir/nav_book.svg',
-    '$_dir/nav_moon.svg',
-  ];
-}
+final _tabs = [
+  _Tab(
+    label: 'Beranda',
+    title: 'Beranda',
+    icon: Icons.home_outlined,
+    selectedIcon: Icons.home,
+    builder: () => const _BerandaTab(),
+  ),
+  _Tab(
+    label: 'Riwayat',
+    title: 'Riwayat Penugasan',
+    icon: Icons.history,
+    selectedIcon: Icons.history,
+    builder: () => const TaskHistoryPage(),
+  ),
+  _Tab(
+    label: 'Profil',
+    title: 'Profil',
+    icon: Icons.person_outline,
+    selectedIcon: Icons.person,
+    builder: () => const ProfilePage(),
+  ),
+];
 
 class _TopBar extends StatelessWidget {
-  const _TopBar();
+  final String title;
+
+  const _TopBar({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
-      child: Row(
-        children: [
-          _IconTap(asset: _HomeAssets.menu, onTap: () {}),
-          Expanded(
-            child: Text(
-              'Home',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: _HomeColors.title,
-                  ),
-            ),
-          ),
-          _IconTap(
-            asset: _HomeAssets.settings,
-            onTap: () => _showSettingsSheet(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSettingsSheet(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          minTileHeight: 56,
-          leading: const Icon(Icons.logout, color: _HomeColors.red),
-          title: const Text(
-            'Keluar',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: _HomeColors.red,
-            ),
-          ),
-          onTap: () {
-            Navigator.of(sheetContext).pop();
-            confirmAndLogout(context);
-          },
+    return SizedBox(
+      height: 44,
+      child: Center(
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
         ),
       ),
     );
   }
 }
 
-/// 24px SVG icon with a 48px touch target.
-class _IconTap extends StatelessWidget {
-  const _IconTap({required this.asset, required this.onTap});
-
-  final String asset;
-  final VoidCallback onTap;
+/// Beranda: today's progress, the nearest task to do, a shortcut to the
+/// task calendar, and the rest of today's tasks.
+class _BerandaTab extends StatelessWidget {
+  const _BerandaTab();
 
   @override
   Widget build(BuildContext context) {
-    return InkResponse(
-      onTap: onTap,
-      radius: 24,
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: Center(
-          child: SvgPicture.asset(asset, width: 24, height: 24),
+    return BlocProvider(
+      create: (context) =>
+          TodayTasksCubit(context.read<TaskRepository>())..load(),
+      child: const _TodayContent(),
+    );
+  }
+}
+
+class _TodayContent extends StatelessWidget {
+  const _TodayContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TodayTasksCubit, TodayTasksState>(
+      builder: (context, state) {
+        final cubit = context.read<TodayTasksCubit>();
+        final nearest = state.nearest;
+        final others = state.tasks.where((t) => t != nearest).toList();
+        final firstLoad = state.status == LoadStatus.initial ||
+            (state.status == LoadStatus.loading && state.tasks.isEmpty);
+
+        return RefreshIndicator(
+          onRefresh: cubit.load,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            children: [
+              _Greeting(state: state),
+              const SizedBox(height: 16),
+              const _CalendarMenu(),
+              const SizedBox(height: 24),
+              if (firstLoad)
+                const Padding(
+                  padding: EdgeInsets.only(top: 40),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (state.status == LoadStatus.failure &&
+                  state.tasks.isEmpty)
+                ErrorView(
+                  message: state.errorMessage ?? 'Gagal memuat tugas.',
+                  onRetry: cubit.load,
+                )
+              else ...[
+                if (state.status == LoadStatus.failure)
+                  _InlineError(message: state.errorMessage),
+                const _SectionTitle('Tugas terdekat'),
+                const SizedBox(height: 10),
+                if (nearest != null)
+                  NearestTaskCard(task: nearest)
+                else
+                  _EmptyNearest(hasTasks: state.tasks.isNotEmpty),
+                const SizedBox(height: 24),
+                _SectionTitle(
+                  'Tugas hari ini',
+                  trailing: '${state.tasks.length} tugas',
+                ),
+                const SizedBox(height: 10),
+                if (others.isEmpty)
+                  Text(
+                    state.tasks.isEmpty
+                        ? 'Tidak ada tugas dengan tenggat hari ini.'
+                        : 'Tidak ada tugas lain hari ini.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                else
+                  for (final t in others) ...[
+                    TaskCard(task: t),
+                    const SizedBox(height: 10),
+                  ],
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Today's date and "x dari y tugas selesai" progress.
+class _Greeting extends StatelessWidget {
+  final TodayTasksState state;
+
+  const _Greeting({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final total = state.tasks.length;
+    final done = state.doneCount;
+    final progress = total == 0 ? 0.0 : done / total;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          DateFormatter.fullDate(DateTime.now()),
+          style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          total == 0
+              ? 'Belum ada tugas hari ini'
+              : '$done dari $total tugas selesai',
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+        ),
+        if (total > 0) ...[
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: scheme.surfaceContainerHighest,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Menu tile that opens the task calendar.
+class _CalendarMenu extends StatelessWidget {
+  const _CalendarMenu();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final radius = BorderRadius.circular(16);
+    return Material(
+      color: scheme.primaryContainer,
+      borderRadius: radius,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: () => context.pushNamed(AppRouter.taskCalendar),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: scheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.calendar_month, color: Colors.white),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Kalender tugas',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: scheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Lihat jadwal tugas per tanggal',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: scheme.onPrimaryContainer.withValues(
+                          alpha: 0.75,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: scheme.onPrimaryContainer),
+            ],
+          ),
         ),
       ),
     );
@@ -205,170 +329,63 @@ class _IconTap extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+  const _SectionTitle(this.text, {this.trailing});
 
   final String text;
+  final String? trailing;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w300,
-          color: _HomeColors.title,
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
         ),
-      ),
+        if (trailing != null)
+          Text(
+            trailing!,
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+      ],
     );
   }
 }
 
-class _NewsItem {
-  const _NewsItem(this.title, this.endColor, this.shadowColor, this.stars);
+class _EmptyNearest extends StatelessWidget {
+  final bool hasTasks;
 
-  final String title;
-  final Color endColor;
-  final Color shadowColor;
-  final String stars;
-}
-
-class _NewsCarousel extends StatelessWidget {
-  const _NewsCarousel();
-
-  static const _items = [
-    _NewsItem(
-      'Short news title will be here',
-      Color(0xFFD994A7),
-      Color(0x26734E85),
-      _HomeAssets.newsStars1,
-    ),
-    _NewsItem(
-      'Short news title will be here',
-      Color(0xFF94D9B4),
-      Color(0x265A748E),
-      _HomeAssets.newsStars3,
-    ),
-    _NewsItem(
-      'Short news title will be here',
-      Color(0xFF7497EF),
-      Color(0x265C4E85),
-      _HomeAssets.newsStars2,
-    ),
-  ];
+  const _EmptyNearest({required this.hasTasks});
 
   @override
   Widget build(BuildContext context) {
-    // Extra height so the card drop shadow isn't clipped by the list.
-    return SizedBox(
-      height: 70 + 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(30, 0, 30, 40),
-        clipBehavior: Clip.none,
-        itemCount: _items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (context, i) => _NewsCard(item: _items[i]),
-      ),
-    );
-  }
-}
-
-class _NewsCard extends StatelessWidget {
-  const _NewsCard({required this.item});
-
-  final _NewsItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(15);
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      width: 153,
-      height: 70,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        borderRadius: radius,
-        gradient: LinearGradient(
-          colors: [const Color(0xFF25196B), item.endColor],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: item.shadowColor,
-            offset: const Offset(0, 15),
-            blurRadius: 25,
-          ),
-        ],
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.outline),
       ),
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: () {},
-          borderRadius: radius,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: SvgPicture.asset(item.stars, width: 153, height: 70),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 30, 0),
-                child: Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DailyTasks extends StatelessWidget {
-  const _DailyTasks();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 30),
       child: Row(
         children: [
-          Expanded(
-            child: _TaskCard(
-              label: 'Daily astromeditation',
-              count: 3,
-              background: _HomeColors.purpleTint,
-              labelColor: _HomeColors.taskLabelPurple,
-              countColor: _HomeColors.textDark,
-              badge: _HomeAssets.badgePurple,
-            ),
+          Icon(
+            hasTasks ? Icons.task_alt : Icons.event_available_outlined,
+            size: 32,
+            color: scheme.onSurfaceVariant,
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
-            child: _TaskCard(
-              label: 'Daily sleep astromeditation',
-              count: 1,
-              background: _HomeColors.redTint,
-              labelColor: _HomeColors.redLabel,
-              countColor: _HomeColors.red,
-              badge: _HomeAssets.badgeRed,
-            ),
-          ),
-          SizedBox(width: 10),
-          Expanded(
-            child: _TaskCard(
-              label: 'Daily mantra',
-              count: 2,
-              background: _HomeColors.tealTint,
-              labelColor: _HomeColors.teal,
-              countColor: _HomeColors.teal,
-              badge: _HomeAssets.badgeTeal,
+            child: Text(
+              hasTasks
+                  ? 'Semua tugas hari ini sudah selesai.'
+                  : 'Tidak ada tugas yang perlu dikerjakan hari ini.',
+              style: TextStyle(color: scheme.onSurfaceVariant),
             ),
           ),
         ],
@@ -377,257 +394,28 @@ class _DailyTasks extends StatelessWidget {
   }
 }
 
-class _TaskCard extends StatelessWidget {
-  const _TaskCard({
-    required this.label,
-    required this.count,
-    required this.background,
-    required this.labelColor,
-    required this.countColor,
-    required this.badge,
-  });
+/// Refresh failed but older data is still shown.
+class _InlineError extends StatelessWidget {
+  final String? message;
 
-  final String label;
-  final int count;
-  final Color background;
-  final Color labelColor;
-  final Color countColor;
-  final String badge;
+  const _InlineError({this.message});
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(15);
-    return Material(
-      color: background,
-      borderRadius: radius,
-      child: InkWell(
-        onTap: () {},
-        borderRadius: radius,
-        child: SizedBox(
-          height: 90,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10,
-                    letterSpacing: -0.2,
-                    color: labelColor,
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  children: [
-                    Text(
-                      '$count',
-                      style: TextStyle(
-                        fontSize: 24,
-                        height: 1.15,
-                        fontWeight: FontWeight.w500,
-                        color: countColor,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    SvgPicture.asset(badge, width: 10.4, height: 10.4),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OverallProgress extends StatelessWidget {
-  const _OverallProgress({required this.progress});
-
-  /// 0.0 – 1.0
-  final double progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final percent = (progress * 100).round();
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
         children: [
-          Text.rich(
-            TextSpan(
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                color: _HomeColors.title,
-              ),
-              children: [
-                const TextSpan(text: 'Your overall progress is '),
-                TextSpan(
-                  text: '$percent%',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w400,
-                    color: _HomeColors.pink,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 9),
-          Container(
-            height: 8,
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: _HomeColors.progressTrack,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            alignment: Alignment.centerLeft,
-            child: FractionallySizedBox(
-              widthFactor: progress.clamp(0.0, 1.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: _HomeColors.pink,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
+          Icon(Icons.error_outline, color: scheme.error, size: 18),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              message ?? 'Gagal memperbarui tugas.',
+              style: TextStyle(color: scheme.error, fontSize: 13),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({
-    required this.icon,
-    required this.arrow,
-    required this.title,
-    required this.subtitle,
-    required this.background,
-    required this.titleColor,
-    required this.subtitleColor,
-    required this.subtitleOpacity,
-  });
-
-  final String icon;
-  final String arrow;
-  final String title;
-  final String subtitle;
-  final Color background;
-  final Color titleColor;
-  final Color subtitleColor;
-  final double subtitleOpacity;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(15);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Material(
-        color: background,
-        borderRadius: radius,
-        child: InkWell(
-          onTap: () {},
-          borderRadius: radius,
-          child: SizedBox(
-            height: 105,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 23, 15, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SvgPicture.asset(icon, width: 24, height: 24),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 16, color: titleColor),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            subtitle,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: subtitleColor.withValues(
-                                alpha: subtitleOpacity,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Padding(
-                    // Vertically centers the 12px arrow in the 105px card.
-                    padding: const EdgeInsets.only(top: 23),
-                    child: SvgPicture.asset(arrow, width: 12, height: 12),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  const _BottomNav({required this.selectedIndex, required this.onSelected});
-
-  final int selectedIndex;
-  final ValueChanged<int> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-    return ColoredBox(
-      color: Colors.white,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(18, 4, 18, bottomInset + 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            for (var i = 0; i < _HomeAssets.navIcons.length; i++)
-              InkResponse(
-                onTap: () => onSelected(i),
-                radius: 24,
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Center(
-                    child: SvgPicture.asset(
-                      _HomeAssets.navIcons[i],
-                      width: 24,
-                      height: 24,
-                      colorFilter: ColorFilter.mode(
-                        i == selectedIndex
-                            ? _HomeColors.navActive
-                            : _HomeColors.navInactive,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }
