@@ -34,4 +34,8 @@ class ApiEndpoints {
   // Field (petugas di HP)
   /// `GET ?status=&dueFrom=&dueTo=`; without `status` only unfinished tasks.
   static const String fieldTasks = '/api/v1/field/tasks';
+
+  /// `POST {fid, platform, appVersion}`: register this device for push.
+  /// 404 when the server's notification-push profile is off.
+  static const String fieldDevices = '/api/v1/field/devices';
 }

@@ -8,7 +8,8 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
-  Future<void> logout({required String refreshToken});
+  /// [deviceFid] detaches this device from push notifications.
+  Future<void> logout({required String refreshToken, String? deviceFid});
 
   Future<void> forgotPassword({required String email});
 
@@ -37,10 +38,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> logout({required String refreshToken}) async {
+  Future<void> logout({required String refreshToken, String? deviceFid}) async {
     await apiClient.post(
       ApiEndpoints.logout,
-      body: {'refreshToken': refreshToken},
+      body: {
+        'refreshToken': refreshToken,
+        if (deviceFid != null) 'deviceFid': deviceFid,
+      },
     );
   }
 

@@ -46,3 +46,7 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
+# Firebase config (has the project API key); get it from the Firebase console
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist

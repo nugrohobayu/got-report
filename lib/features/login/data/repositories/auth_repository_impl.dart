@@ -9,9 +9,14 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final TokenStorage tokenStorage;
 
+  /// This device's push ID (Firebase Installation ID), sent on logout so
+  /// the server stops pushing to it. Returns `null` when unavailable.
+  final Future<String?> Function()? deviceFid;
+
   const AuthRepositoryImpl({
     required this.remoteDataSource,
     required this.tokenStorage,
+    this.deviceFid,
   });
 
   @override
@@ -50,7 +55,10 @@ class AuthRepositoryImpl implements AuthRepository {
     final refreshToken = await tokenStorage.readRefreshToken();
     try {
       if (refreshToken != null) {
-        await remoteDataSource.logout(refreshToken: refreshToken);
+        await remoteDataSource.logout(
+          refreshToken: refreshToken,
+          deviceFid: await deviceFid?.call(),
+        );
       }
     } catch (e) {
       // Offline or already revoked: still log out locally.
