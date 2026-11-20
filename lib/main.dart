@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:got_report/core/auth/auth_interceptor.dart';
@@ -160,6 +161,10 @@ class _MyAppState extends State<MyApp> {
               theme: AppTheme.light,
               darkTheme: AppTheme.dark,
               themeMode: themeMode,
+              // UI is Indonesian: date pickers, dialogs, tooltips, etc.
+              locale: const Locale('id', 'ID'),
+              supportedLocales: const [Locale('id', 'ID')],
+              localizationsDelegates: GlobalMaterialLocalizations.delegates,
               routerConfig: _router,
             );
           },
