@@ -37,8 +37,18 @@ class AppTheme {
       outlineVariant: isDark ? AppColors.darkBorder : AppColors.border,
       primaryContainer: isDark ? AppColors.navy : AppColors.blueTint,
       onPrimaryContainer: isDark ? Colors.white : AppColors.navy,
+      // Material 3 widgets (NavigationBar, chips, menus) default to these
+      // seed-derived surfaces; pin them to the brand neutrals.
+      surfaceContainerLowest: isDark ? AppColors.darkBackground : Colors.white,
+      surfaceContainerLow: isDark ? AppColors.darkSurface : AppColors.surface,
+      surfaceContainer: isDark ? AppColors.darkSurface : AppColors.surface,
+      surfaceContainerHigh:
+          isDark ? AppColors.darkSurfaceHigh : AppColors.background,
       surfaceContainerHighest:
           isDark ? AppColors.darkSurfaceHigh : AppColors.background,
+      secondaryContainer:
+          isDark ? AppColors.darkSurfaceHigh : AppColors.blueTint,
+      onSecondaryContainer: isDark ? Colors.white : AppColors.navy,
       surfaceTint: Colors.transparent,
     );
 
@@ -223,6 +233,31 @@ class AppTheme {
         fillColor: WidgetStateProperty.resolveWith(
           (states) =>
               states.contains(WidgetState.selected) ? AppColors.blue : null,
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 68,
+        indicatorColor: isDark ? AppColors.darkSurfaceHigh : AppColors.blueTint,
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? (isDark ? Colors.white : AppColors.blue)
+                : colorScheme.onSurfaceVariant,
+          ),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w700
+                : FontWeight.w500,
+            color: states.contains(WidgetState.selected)
+                ? (isDark ? Colors.white : AppColors.blue)
+                : colorScheme.onSurfaceVariant,
+          ),
         ),
       ),
       chipTheme: ChipThemeData(

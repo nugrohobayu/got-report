@@ -5,6 +5,8 @@ import 'package:got_report/core/utils/date_formatter.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/core/widgets/error_view.dart';
 import 'package:got_report/features/kalender_tugas/presentation/pages/task_calendar_page.dart';
+import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
+import 'package:got_report/features/profil/presentation/bloc/profile_cubit.dart';
 import 'package:got_report/features/profil/presentation/pages/profile_page.dart';
 import 'package:got_report/features/riwayat_penugasan/presentation/pages/task_history_page.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
@@ -29,42 +31,62 @@ class _HomePageState extends State<HomePage> {
   /// kept alive by the [IndexedStack].
   final Set<int> _opened = {0};
 
+  /// Shared by the Beranda greeting and the Profil tab (one `/me` call).
+  late final ProfileCubit _profile =
+      ProfileCubit(context.read<ProfileRepository>())..load();
+
+  @override
+  void dispose() {
+    _profile.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-      child: Scaffold(
-        body: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              _TopBar(title: _tabs[_navIndex].title),
-              Expanded(
-                child: IndexedStack(
-                  index: _navIndex,
-                  children: [
-                    for (var i = 0; i < _tabs.length; i++)
-                      _opened.contains(i)
-                          ? _tabs[i].builder()
-                          : const SizedBox.shrink(),
-                  ],
+    final scheme = Theme.of(context).colorScheme;
+    final title = _tabs[_navIndex].title;
+    return BlocProvider.value(
+      value: _profile,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        child: Scaffold(
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                if (title != null) _TopBar(title: title),
+                Expanded(
+                  child: IndexedStack(
+                    index: _navIndex,
+                    children: [
+                      for (var i = 0; i < _tabs.length; i++)
+                        _opened.contains(i)
+                            ? _tabs[i].builder()
+                            : const SizedBox.shrink(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _navIndex,
-          onDestinationSelected: _select,
-          destinations: [
-            for (final tab in _tabs)
-              NavigationDestination(
-                icon: Icon(tab.icon),
-                selectedIcon: Icon(tab.selectedIcon),
-                label: tab.label,
-              ),
-          ],
+          bottomNavigationBar: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: scheme.outline)),
+            ),
+            child: NavigationBar(
+              selectedIndex: _navIndex,
+              onDestinationSelected: _select,
+              destinations: [
+                for (final tab in _tabs)
+                  NavigationDestination(
+                    icon: Icon(tab.icon),
+                    selectedIcon: Icon(tab.selectedIcon),
+                    label: tab.label,
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -78,10 +100,14 @@ class _HomePageState extends State<HomePage> {
   late final List<_Tab> _tabs = [
     _Tab(
       label: 'Beranda',
-      title: 'Beranda',
+      // No header: the greeting is the top of the page.
+      title: null,
       icon: Icons.home_outlined,
       selectedIcon: Icons.home,
-      builder: () => _BerandaTab(onOpenCalendar: () => _select(1)),
+      builder: () => _BerandaTab(
+        onOpenCalendar: () => _select(1),
+        onOpenProfile: () => _select(3),
+      ),
     ),
     _Tab(
       label: 'Kalender',
@@ -109,7 +135,9 @@ class _HomePageState extends State<HomePage> {
 
 class _Tab {
   final String label;
-  final String title;
+
+  /// Header title; `null` hides the header.
+  final String? title;
   final IconData icon;
   final IconData selectedIcon;
   final Widget Function() builder;
@@ -145,28 +173,39 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-/// Beranda: today's progress, the nearest task to do, a shortcut to the
-/// task calendar, and the rest of today's tasks.
+/// Beranda: greeting, today's progress, the nearest task to do, a shortcut
+/// to the task calendar, and the rest of today's tasks.
 class _BerandaTab extends StatelessWidget {
-  /// Switches to the Kalender tab.
+  /// Switch to the Kalender / Profil tab.
   final VoidCallback onOpenCalendar;
+  final VoidCallback onOpenProfile;
 
-  const _BerandaTab({required this.onOpenCalendar});
+  const _BerandaTab({
+    required this.onOpenCalendar,
+    required this.onOpenProfile,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
           TodayTasksCubit(context.read<TaskRepository>())..load(),
-      child: _TodayContent(onOpenCalendar: onOpenCalendar),
+      child: _TodayContent(
+        onOpenCalendar: onOpenCalendar,
+        onOpenProfile: onOpenProfile,
+      ),
     );
   }
 }
 
 class _TodayContent extends StatelessWidget {
   final VoidCallback onOpenCalendar;
+  final VoidCallback onOpenProfile;
 
-  const _TodayContent({required this.onOpenCalendar});
+  const _TodayContent({
+    required this.onOpenCalendar,
+    required this.onOpenProfile,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -182,10 +221,12 @@ class _TodayContent extends StatelessWidget {
           onRefresh: cubit.load,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
             children: [
-              _Greeting(state: state),
-              const SizedBox(height: 16),
+              _Greeting(onTapAvatar: onOpenProfile),
+              const SizedBox(height: 20),
+              _TodayProgress(state: state),
+              const SizedBox(height: 12),
               _CalendarMenu(onTap: onOpenCalendar),
               const SizedBox(height: 24),
               if (firstLoad)
@@ -237,45 +278,142 @@ class _TodayContent extends StatelessWidget {
   }
 }
 
-/// Today's date and "x dari y tugas selesai" progress.
+/// "Selamat pagi" + the worker's name and today's date, with their initials
+/// on the right (tap → Profil tab).
 class _Greeting extends StatelessWidget {
+  final VoidCallback onTapAvatar;
+
+  const _Greeting({required this.onTapAvatar});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final now = DateTime.now();
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        final profile = state.profile;
+        final name = profile?.fullName.trim() ?? '';
+        return Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name.isEmpty
+                        ? timeOfDayGreeting(now)
+                        : '${timeOfDayGreeting(now)},',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (name.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormatter.fullDate(now),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            InkResponse(
+              onTap: onTapAvatar,
+              radius: 28,
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: scheme.primary,
+                child: profile == null
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : Text(
+                        profile.initials,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// `Selamat pagi / siang / sore / malam` from the device's local hour
+/// (display only, never used as proof of time).
+String timeOfDayGreeting(DateTime now) {
+  final h = now.hour;
+  if (h >= 4 && h < 11) return 'Selamat pagi';
+  if (h >= 11 && h < 15) return 'Selamat siang';
+  if (h >= 15 && h < 18) return 'Selamat sore';
+  return 'Selamat malam';
+}
+
+/// Card with "x dari y tugas selesai" and a progress bar.
+class _TodayProgress extends StatelessWidget {
   final TodayTasksState state;
 
-  const _Greeting({required this.state});
+  const _TodayProgress({required this.state});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final total = state.tasks.length;
     final done = state.doneCount;
-    final progress = total == 0 ? 0.0 : done / total;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          DateFormatter.fullDate(DateTime.now()),
-          style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          total == 0
-              ? 'Belum ada tugas hari ini'
-              : '$done dari $total tugas selesai',
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-        ),
-        if (total > 0) ...[
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: scheme.surfaceContainerHighest,
-            ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Progres hari ini',
+            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
           ),
+          const SizedBox(height: 4),
+          Text(
+            total == 0
+                ? 'Belum ada tugas hari ini'
+                : '$done dari $total tugas selesai',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          if (total > 0) ...[
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: done / total,
+                minHeight: 8,
+                color: scheme.primary,
+                backgroundColor: scheme.outline,
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

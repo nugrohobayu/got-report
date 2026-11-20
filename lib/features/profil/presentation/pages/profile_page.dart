@@ -5,47 +5,45 @@ import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/core/widgets/error_view.dart';
 import 'package:got_report/features/login/presentation/widgets/logout_dialog.dart';
 import 'package:got_report/features/profil/domain/entities/user_profile.dart';
-import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
 import 'package:got_report/features/profil/presentation/bloc/profile_cubit.dart';
 
 /// Profil tab: who is logged in, dark mode switch, and logout.
+///
+/// Reads the [ProfileCubit] provided (and loaded) by HomePage, which also
+/// uses it for the Beranda greeting.
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          ProfileCubit(context.read<ProfileRepository>())..load(),
-      child: BlocBuilder<ProfileCubit, ProfileState>(
-        builder: (context, state) {
-          final cubit = context.read<ProfileCubit>();
-          final profile = state.profile;
-          return RefreshIndicator(
-            onRefresh: cubit.load,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-              children: [
-                if (profile != null)
-                  _ProfileHeader(profile: profile)
-                else if (state.status == LoadStatus.failure)
-                  ErrorView(
-                    message: state.errorMessage ?? 'Gagal memuat profil.',
-                    onRetry: cubit.load,
-                  )
-                else
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                const SizedBox(height: 24),
-                const _SettingsCard(),
-              ],
-            ),
-          );
-        },
-      ),
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        final cubit = context.read<ProfileCubit>();
+        final profile = state.profile;
+        return RefreshIndicator(
+          onRefresh: cubit.load,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            children: [
+              if (profile != null)
+                _ProfileHeader(profile: profile)
+              else if (state.status == LoadStatus.failure)
+                ErrorView(
+                  message: state.errorMessage ?? 'Gagal memuat profil.',
+                  onRetry: cubit.load,
+                )
+              else
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              const SizedBox(height: 24),
+              const _SettingsCard(),
+            ],
+          ),
+        );
+      },
     );
   }
 }

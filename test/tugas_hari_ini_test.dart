@@ -7,6 +7,8 @@ import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
 import 'package:got_report/features/kalender_tugas/presentation/bloc/task_calendar_cubit.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
+import 'package:got_report/features/profil/domain/entities/user_profile.dart';
+import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
 import 'package:got_report/features/tugas_hari_ini/data/models/task_summary_model.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
@@ -81,8 +83,26 @@ class _NoopAuthRepository implements AuthRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _FakeProfileRepository implements ProfileRepository {
+  @override
+  Future<UserProfile> getMe() async => const UserProfile(
+        id: 'u1',
+        fullName: 'Teknisi A',
+        email: 'teknisi@contoh.id',
+      );
+}
+
 void main() {
   setUpAll(() => initializeDateFormatting('id_ID'));
+
+  test('timeOfDayGreeting follows the local hour', () {
+    String at(int h) => timeOfDayGreeting(DateTime(2026, 11, 20, h));
+    expect(at(6), 'Selamat pagi');
+    expect(at(12), 'Selamat siang');
+    expect(at(16), 'Selamat sore');
+    expect(at(20), 'Selamat malam');
+    expect(at(2), 'Selamat malam');
+  });
 
   group('TaskSummaryModel', () {
     test('parses the API example and converts dueAt to local time', () {
@@ -203,12 +223,18 @@ void main() {
           RepositoryProvider<AuthRepository>.value(
             value: _NoopAuthRepository(),
           ),
+          RepositoryProvider<ProfileRepository>.value(
+            value: _FakeProfileRepository(),
+          ),
         ],
         child: const MaterialApp(home: HomePage()),
       ),
     );
     await tester.pumpAndSettle();
 
+    // Greeting with the name from /me, no "Beranda" header.
+    expect(find.text('Teknisi A'), findsOneWidget);
+    expect(find.textContaining('Selamat '), findsOneWidget);
     expect(find.text('1 dari 3 tugas selesai'), findsOneWidget);
     expect(find.text('Tugas terdekat'), findsOneWidget);
     expect(find.text('Navigasi'), findsOneWidget);
