@@ -20,6 +20,7 @@ import 'package:got_report/core/utils/app_logger.dart';
 import 'package:got_report/core/router/app_router.dart';
 import 'package:got_report/core/theme/app_theme.dart';
 import 'package:got_report/core/theme/theme_cubit.dart';
+import 'package:got_report/core/tracking/ping_tracker.dart';
 import 'package:got_report/features/form_dinamis/data/repositories/task_form_repository_impl.dart';
 import 'package:got_report/features/form_dinamis/domain/repositories/task_form_repository.dart';
 import 'package:got_report/features/login/data/datasources/auth_remote_data_source.dart';
@@ -102,16 +103,31 @@ class _MyAppState extends State<MyApp> {
   late final GoRouter _router = AppRouter.create(widget.sessionCubit);
   late final PushService _push =
       PushService(_apiClient, widget.sharedPreferences);
+  late final PingTracker _pings = PingTracker(
+    apiClient: _apiClient,
+    locationService: _locationService,
+  );
+  final LocationService _locationService = const GeolocatorLocationService();
   late final StreamSubscription<SessionStatus> _sessionSub;
 
   @override
   void initState() {
     super.initState();
-    // Register for push on app start while logged in, and after each login.
-    if (widget.sessionCubit.isAuthenticated) _push.registerDevice();
-    _sessionSub = widget.sessionCubit.stream
-        .where((s) => s == SessionStatus.authenticated)
-        .listen((_) => _push.registerDevice());
+    WidgetsBinding.instance.addObserver(_pings);
+    // Register for push and start the GPS trail on app start while logged
+    // in, and after each login. The trail stops on logout.
+    if (widget.sessionCubit.isAuthenticated) {
+      _push.registerDevice();
+      _pings.start();
+    }
+    _sessionSub = widget.sessionCubit.stream.listen((s) {
+      if (s == SessionStatus.authenticated) {
+        _push.registerDevice();
+        _pings.start();
+      } else {
+        _pings.stop();
+      }
+    });
     PushNotifications.init(
       onOpened: _openPushRoute,
       isEnabled: () => _push.isEnabled,
@@ -128,6 +144,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     _sessionSub.cancel();
+    WidgetsBinding.instance.removeObserver(_pings);
+    _pings.dispose();
     _router.dispose();
     _apiClient.dispose();
     super.dispose();
@@ -162,9 +180,8 @@ class _MyAppState extends State<MyApp> {
         RepositoryProvider<TaskFormRepository>(
           create: (_) => TaskFormRepositoryImpl(_apiClient),
         ),
-        RepositoryProvider<LocationService>(
-          create: (_) => const GeolocatorLocationService(),
-        ),
+        RepositoryProvider<LocationService>.value(value: _locationService),
+        RepositoryProvider<PingTracker>.value(value: _pings),
         RepositoryProvider<ProfileRepository>(
           create: (_) =>
               ProfileRepositoryImpl(ProfileRemoteDataSourceImpl(_apiClient)),

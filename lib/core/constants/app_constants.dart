@@ -68,4 +68,9 @@ class ApiEndpoints {
   /// `DELETE ?fid=`: stop pushing to it.
   /// 404 when the server's notification-push profile is off.
   static const String fieldDevices = '/api/v1/field/devices';
+
+  /// `POST {pings: [{latitude, longitude, accuracyM?, mock?, recordedAt}]}`
+  /// (1–100 points) → `{accepted, dropped}`. Only kept while the user has a
+  /// DIKERJAKAN task; send only then.
+  static const String fieldPings = '/api/v1/field/pings';
 }

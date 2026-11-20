@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:got_report/core/tracking/ping_tracker.dart';
 import 'package:got_report/core/error/failures.dart';
 import 'package:got_report/core/location/location_service.dart';
 import 'package:got_report/features/mulai_tugas/domain/entities/task_start.dart';
@@ -68,7 +69,10 @@ Future<void> startRevision(
     );
     return true;
   });
-  if (ok == true && context.mounted) onStarted();
+  if (ok == true && context.mounted) {
+    PingTracker.maybeOf(context)?.refresh();
+    onStarted();
+  }
 }
 
 /// Runs [action] behind a "Memulai revisi..." dialog. On error shows the

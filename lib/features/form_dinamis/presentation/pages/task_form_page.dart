@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:got_report/core/tracking/ping_tracker.dart';
 import 'package:got_report/core/location/location_service.dart';
 import 'package:got_report/core/theme/app_colors.dart';
 import 'package:got_report/core/widgets/error_view.dart';
@@ -105,6 +106,11 @@ class _TaskFormViewState extends State<_TaskFormView> {
     return BlocConsumer<TaskFormCubit, TaskFormState>(
       listener: (context, state) {
         _signatureError.value = state.error;
+        // Left DIKERJAKAN (waiting for signature / done): stop the trail.
+        if (state.status == TaskFormStatus.awaitingSignature ||
+            state.status == TaskFormStatus.finished) {
+          PingTracker.maybeOf(context)?.refresh();
+        }
         if (state.status == TaskFormStatus.awaitingSignature &&
             (state.form?.isLeader ?? false)) {
           _openSignature();

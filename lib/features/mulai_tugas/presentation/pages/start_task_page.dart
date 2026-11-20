@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:got_report/core/tracking/ping_tracker.dart';
 import 'package:got_report/core/location/location_service.dart';
 import 'package:got_report/core/theme/app_colors.dart';
 import 'package:got_report/core/utils/date_formatter.dart';
@@ -100,7 +101,10 @@ class _StartTaskViewState extends State<_StartTaskView>
   Widget build(BuildContext context) {
     return BlocConsumer<StartTaskCubit, StartTaskState>(
       listenWhen: (a, b) => b.status == StartTaskStatus.started,
-      listener: (context, state) => Navigator.of(context).pop(true),
+      listener: (context, state) {
+        PingTracker.maybeOf(context)?.refresh();
+        Navigator.of(context).pop(true);
+      },
       builder: (context, state) {
         final cubit = context.read<StartTaskCubit>();
         final info = state.info;
