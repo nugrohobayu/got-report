@@ -3,11 +3,13 @@ import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/core/error/failures.dart';
 import 'package:got_report/features/change_password/presentation/bloc/change_password_cubit.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
+import 'package:got_report/features/login/presentation/bloc/forgot_password_cubit.dart';
 import 'package:got_report/features/login/presentation/bloc/login_cubit.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   Failure? loginFailure;
   Failure? changePasswordFailure;
+  Failure? forgotFailure;
   bool mustChangePassword = false;
   String? lastEmail;
   String? lastNewPassword;
@@ -34,6 +36,7 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<void> forgotPassword({required String email}) async {
     lastEmail = email;
+    if (forgotFailure != null) throw forgotFailure!;
   }
 }
 
@@ -143,13 +146,42 @@ void main() {
     expect(cubit.state.errorMessage, isNotNull);
   });
 
-  test('forgot password requires an email', () async {
-    await cubit.forgotPassword(email: '');
-    expect(repo.lastEmail, isNull);
-    expect(cubit.state.errorMessage, isNotNull);
+  group('ForgotPasswordCubit', () {
+    late ForgotPasswordCubit forgot;
 
-    await cubit.forgotPassword(email: 'teknisi@contoh.id');
-    expect(repo.lastEmail, 'teknisi@contoh.id');
-    expect(cubit.state.infoMessage, isNotNull);
+    setUp(() => forgot = ForgotPasswordCubit(authRepository: repo));
+    tearDown(() => forgot.close());
+
+    test('empty or malformed email is rejected without calling the API',
+        () async {
+      await forgot.submit(email: ' ');
+      expect(forgot.state.errorMessage, isNotNull);
+
+      await forgot.submit(email: 'bukan-email');
+      expect(forgot.state.errorMessage, contains('tidak valid'));
+
+      expect(repo.lastEmail, isNull);
+      expect(forgot.state.sent, isFalse);
+    });
+
+    test('success trims the email and shows the sent state', () async {
+      await forgot.submit(email: '  teknisi@contoh.id ');
+
+      expect(repo.lastEmail, 'teknisi@contoh.id');
+      expect(forgot.state.sentTo, 'teknisi@contoh.id');
+      expect(forgot.state.errorMessage, isNull);
+
+      forgot.reset();
+      expect(forgot.state.sent, isFalse);
+    });
+
+    test('backend error message is shown as-is', () async {
+      repo.forgotFailure = const ServerFailure('Terlalu banyak permintaan');
+
+      await forgot.submit(email: 'teknisi@contoh.id');
+
+      expect(forgot.state.errorMessage, 'Terlalu banyak permintaan');
+      expect(forgot.state.sent, isFalse);
+    });
   });
 }

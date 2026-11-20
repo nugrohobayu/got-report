@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:got_report/core/auth/session_cubit.dart';
+import 'package:got_report/core/router/app_router.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
 import 'package:got_report/features/login/presentation/bloc/login_cubit.dart';
 import 'package:got_report/features/login/presentation/widgets/auth_widgets.dart';
@@ -44,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onForgotPassword() {
     FocusScope.of(context).unfocus();
-    _cubit.forgotPassword(email: _emailController.text);
+    context.push(AppRouter.forgotPasswordPath, extra: _emailController.text);
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
@@ -65,8 +67,6 @@ class _LoginPageState extends State<LoginPage> {
       listener: (context, state) {
         if (state.errorMessage != null) {
           _showSnackBar(state.errorMessage!, isError: true);
-        } else if (state.infoMessage != null) {
-          _showSnackBar(state.infoMessage!);
         }
       },
       builder: (context, state) => _buildContent(context, state),
@@ -75,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildContent(BuildContext context, LoginState state) {
     final c = AuthColors.of(context);
-    final busy = state.isLoading || state.forgotLoading;
+    final busy = state.isLoading;
 
     return AuthScaffold(
       children: [
@@ -112,22 +112,13 @@ class _LoginPageState extends State<LoginPage> {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: state.forgotLoading
-                ? SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: c.link,
-                    ),
-                  )
-                : Text(
-                    'Lupa kata sandi?',
-                    style: AuthText.small(
-                      weight: FontWeight.w600,
-                      color: c.link,
-                    ).copyWith(fontSize: 13),
-                  ),
+            child: Text(
+              'Lupa kata sandi?',
+              style: AuthText.small(
+                weight: FontWeight.w600,
+                color: c.link,
+              ).copyWith(fontSize: 13),
+            ),
           ),
         ),
         const SizedBox(height: 24),

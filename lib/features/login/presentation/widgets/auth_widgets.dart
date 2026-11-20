@@ -16,12 +16,16 @@ import 'package:got_report/core/theme/app_colors.dart';
 class AuthScaffold extends StatelessWidget {
   final List<Widget> children;
 
-  const AuthScaffold({super.key, required this.children});
+  /// Shows a back button at the top left when set.
+  final VoidCallback? onBack;
+
+  const AuthScaffold({super.key, required this.children, this.onBack});
 
   @override
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
-    final topInset = padding.top;
+    // Keep content clear of the back button.
+    final topInset = padding.top + (onBack != null ? 48 : 0);
     final bottomInset = padding.bottom;
     final c = AuthColors.of(context);
 
@@ -56,6 +60,16 @@ class AuthScaffold extends StatelessWidget {
                 ),
               ),
             ),
+            if (onBack != null)
+              Positioned(
+                top: padding.top + 4,
+                left: 8,
+                child: IconButton(
+                  onPressed: onBack,
+                  tooltip: 'Kembali',
+                  icon: Icon(Icons.arrow_back_rounded, color: c.textPrimary),
+                ),
+              ),
           ],
         ),
       ),

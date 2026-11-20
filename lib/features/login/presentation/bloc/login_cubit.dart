@@ -8,23 +8,19 @@ enum LoginStatus { idle, loading, success, failure }
 
 class LoginState extends Equatable {
   final LoginStatus status;
-  final bool forgotLoading;
 
-  /// One-shot messages shown as a snackbar; reset on the next action.
+  /// One-shot error shown as a snackbar; reset on the next action.
   final String? errorMessage;
-  final String? infoMessage;
 
   const LoginState({
     this.status = LoginStatus.idle,
-    this.forgotLoading = false,
     this.errorMessage,
-    this.infoMessage,
   });
 
   bool get isLoading => status == LoginStatus.loading;
 
   @override
-  List<Object?> get props => [status, forgotLoading, errorMessage, infoMessage];
+  List<Object?> get props => [status, errorMessage];
 }
 
 class LoginCubit extends Cubit<LoginState> {
@@ -63,27 +59,4 @@ class LoginCubit extends Cubit<LoginState> {
     }
   }
 
-  Future<void> forgotPassword({required String email}) async {
-    if (state.forgotLoading || state.isLoading) return;
-    final trimmedEmail = email.trim();
-    if (trimmedEmail.isEmpty) {
-      emit(const LoginState(
-        errorMessage:
-            'Isi email terlebih dahulu, lalu tekan "Lupa kata sandi?".',
-      ));
-      return;
-    }
-
-    emit(const LoginState(forgotLoading: true));
-    try {
-      await authRepository.forgotPassword(email: trimmedEmail);
-      emit(const LoginState(
-        infoMessage:
-            'Jika email terdaftar, link atur ulang kata sandi sudah dikirim. '
-            'Periksa kotak masuk email Anda.',
-      ));
-    } on Failure catch (f) {
-      emit(LoginState(errorMessage: f.message));
-    }
-  }
 }

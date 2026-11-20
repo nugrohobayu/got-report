@@ -8,6 +8,7 @@ import 'package:got_report/features/change_password/presentation/pages/change_pa
 import 'package:got_report/features/download_test/presentation/pages/download_test_page.dart';
 import 'package:got_report/features/form_dinamis/presentation/pages/task_form_page.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
+import 'package:got_report/features/login/presentation/pages/forgot_password_page.dart';
 import 'package:got_report/features/login/presentation/pages/login_page.dart';
 import 'package:got_report/features/mulai_tugas/presentation/pages/start_task_page.dart';
 
@@ -16,6 +17,7 @@ class AppRouter {
 
   static const _login = '/login';
   static const _changePassword = '/change-password';
+  static const forgotPasswordPath = '/forgot-password';
 
   /// Routes are guarded by [session]: logged-out users always land on
   /// `/login`, users who must change their password are kept on
@@ -29,6 +31,13 @@ class AppRouter {
             path: _login,
             name: 'login',
             builder: (context, state) => const LoginPage(),
+          ),
+          GoRoute(
+            path: forgotPasswordPath,
+            name: 'forgotPassword',
+            builder: (context, state) => ForgotPasswordPage(
+              initialEmail: state.extra is String ? state.extra! as String : null,
+            ),
           ),
           GoRoute(
             path: _changePassword,
@@ -68,9 +77,17 @@ class AppRouter {
           // Logged out / must change password: only the matching screen.
           if (!session.isAuthenticated) {
             final target = _startFor(session);
+            // Forgot password is reachable from login while logged out.
+            if (target == _login && location == forgotPasswordPath) {
+              return null;
+            }
             return location == target ? null : target;
           }
-          if (location == _login || location == _changePassword) return '/';
+          if (location == _login ||
+              location == _changePassword ||
+              location == forgotPasswordPath) {
+            return '/';
+          }
           return null;
         },
       );
