@@ -10,7 +10,8 @@ import 'package:got_report/core/theme/app_colors.dart';
 // Building blocks shared by the auth screens (login, change password), taken
 // from the Figma "Login Version 8" design.
 
-/// Page frame of the auth screens: brand background, blue header blur and
+/// Page frame of the auth screens: brand background, blue header blur,
+/// orange top-right glow and
 /// [children] centered vertically, still scrollable when the keyboard opens.
 class AuthScaffold extends StatelessWidget {
   final List<Widget> children;
@@ -31,6 +32,7 @@ class AuthScaffold extends StatelessWidget {
         body: Stack(
           children: [
             const AuthHeaderBlur(),
+            const AuthCornerGlow(),
             LayoutBuilder(
               builder: (context, constraints) => SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
@@ -65,6 +67,7 @@ class AuthScaffold extends StatelessWidget {
 class AuthPasswordField extends StatefulWidget {
   final TextEditingController controller;
   final String hint;
+  final String? label;
   final bool enabled;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
@@ -74,6 +77,7 @@ class AuthPasswordField extends StatefulWidget {
     super.key,
     required this.controller,
     required this.hint,
+    this.label,
     this.enabled = true,
     this.textInputAction,
     this.autofillHints,
@@ -94,6 +98,8 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
     return AuthTextField(
       controller: widget.controller,
       hint: widget.hint,
+      label: widget.label,
+      icon: Icons.lock_outline_rounded,
       obscureText: _obscure,
       enabled: widget.enabled,
       textInputAction: widget.textInputAction,
@@ -106,15 +112,14 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
           onTap: () => setState(() => _obscure = !_obscure),
           behavior: HitTestBehavior.opaque,
           child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: _obscure
-                ? SvgPicture.asset(
-                    'assets/images/login/eye_off.svg',
-                    width: 16,
-                    height: 16,
-                    colorFilter: c.svgTint(c.placeholder),
-                  )
-                : Icon(Icons.visibility_outlined, size: 16, color: c.grey),
+            padding: const EdgeInsets.all(8),
+            child: Icon(
+              _obscure
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              size: 20,
+              color: c.placeholder,
+            ),
           ),
         ),
       ),
@@ -174,9 +179,47 @@ class AuthHeaderBlur extends StatelessWidget {
   }
 }
 
+/// Soft orange glow in the top-right corner, layered over [AuthHeaderBlur]
+/// on the in-app pages. Place it inside a [Stack].
+class AuthCornerGlow extends StatelessWidget {
+  const AuthCornerGlow({super.key});
+
+  static const double _size = 360;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Positioned(
+      top: -_size / 2,
+      right: -_size / 2,
+      width: _size,
+      height: _size,
+      child: IgnorePointer(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                AppColors.orange.withValues(alpha: isDark ? 0.30 : 0.45),
+                AppColors.orange.withValues(alpha: 0),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class AuthTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
+
+  /// Optional label shown above the field.
+  final String? label;
+
+  /// Optional leading icon inside the field.
+  final IconData? icon;
   final bool obscureText;
   final TextInputType? keyboardType;
   final Widget? suffix;
@@ -189,6 +232,8 @@ class AuthTextField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.hint,
+    this.label,
+    this.icon,
     this.obscureText = false,
     this.keyboardType,
     this.suffix,
@@ -201,71 +246,77 @@ class AuthTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AuthColors.of(context);
+    final radius = BorderRadius.circular(14);
     final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: radius,
       borderSide: BorderSide(color: c.stroke),
     );
     final textStyle = GoogleFonts.plusJakartaSans(
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: FontWeight.w500,
       height: 1.4,
-      letterSpacing: -0.14,
+      letterSpacing: -0.15,
       color: c.textPrimary,
     );
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: c.isDark
-            ? null
-            : const [
-                BoxShadow(
-                  color: Color(0x3DE4E5E7),
-                  offset: Offset(0, 1),
-                  blurRadius: 2,
-                ),
-              ],
-      ),
-      child: SizedBox(
-        height: 46,
-        child: TextField(
-          controller: controller,
-          obscureText: obscureText,
-          obscuringCharacter: '*',
-          keyboardType: keyboardType,
-          enabled: enabled,
-          textInputAction: textInputAction,
-          autofillHints: autofillHints,
-          onSubmitted: onSubmitted,
-          autocorrect: false,
-          style: textStyle,
-          cursorColor: c.link,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: textStyle.copyWith(color: c.placeholder),
-            filled: true,
-            fillColor: c.field,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 13,
-            ),
-            suffixIcon: suffix,
-            suffixIconConstraints:
-                const BoxConstraints(minWidth: 38, minHeight: 24),
-            border: border,
-            enabledBorder: border,
-            disabledBorder: border,
-            focusedBorder: border.copyWith(
-              borderSide: BorderSide(color: c.link),
-            ),
-          ),
+    final field = TextField(
+      controller: controller,
+      obscureText: obscureText,
+      obscuringCharacter: '•',
+      keyboardType: keyboardType,
+      enabled: enabled,
+      textInputAction: textInputAction,
+      autofillHints: autofillHints,
+      onSubmitted: onSubmitted,
+      autocorrect: false,
+      style: textStyle,
+      cursorColor: c.link,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: textStyle.copyWith(
+          color: c.placeholder,
+          fontWeight: FontWeight.w400,
+        ),
+        filled: true,
+        fillColor: c.field,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 17,
+        ),
+        prefixIcon:
+            icon == null ? null : Icon(icon, size: 20, color: c.placeholder),
+        prefixIconConstraints:
+            const BoxConstraints(minWidth: 48, minHeight: 24),
+        suffixIcon: suffix,
+        suffixIconConstraints:
+            const BoxConstraints(minWidth: 48, minHeight: 24),
+        border: border,
+        enabledBorder: border,
+        disabledBorder: border,
+        focusedBorder: border.copyWith(
+          borderSide: BorderSide(color: c.link, width: 1.5),
         ),
       ),
+    );
+    if (label == null) return field;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label!,
+          style: AuthText.small(weight: FontWeight.w600, color: c.grey)
+              .copyWith(fontSize: 13),
+        ),
+        const SizedBox(height: 8),
+        field,
+      ],
     );
   }
 }
 
+/// Flat, solid brand-blue button for the auth screens.
 class AuthPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -281,61 +332,40 @@ class AuthPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AuthColors.of(context);
-    final radius = BorderRadius.circular(10);
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
+    final radius = BorderRadius.circular(14);
     // Dimmed when disabled; a spinner already shows it is busy.
     final disabled = onPressed == null && !loading;
 
-    final button = DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: [
-          const BoxShadow(
-            color: Color(0x7A12305A),
-            offset: Offset(0, 1),
-            blurRadius: 2,
-          ),
-          BoxShadow(color: c.link, spreadRadius: 1),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: radius,
-        clipBehavior: Clip.antiAlias,
-        child: Ink(
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(color: c.buttonInnerBorder),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              // White 12% → 0% overlay on brand blue #2F7CC4, pre-blended.
-              colors: [const Color(0xFF4A8DCC), c.link],
-            ),
-          ),
-          child: InkWell(
-            onTap: onPressed,
-            child: Center(
-              child: loading
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    )
-                  : Text(
-                      label,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        height: 1.4,
-                        letterSpacing: -0.14,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
+    final button = Material(
+      color: c.link,
+      borderRadius: radius,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: SizedBox(
+          // Same height as [AuthTextField] so the form lines up.
+          height: 50,
+          child: Center(
+            child: loading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: onPrimary,
                     ),
-            ),
+                  )
+                : Text(
+                    label,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                      letterSpacing: -0.15,
+                      color: onPrimary,
+                    ),
+                  ),
           ),
         ),
       ),
@@ -354,10 +384,10 @@ class AuthText {
 
   /// Screen headline, e.g. "Masuk ke Akun Anda".
   static TextStyle title({required Color color}) => GoogleFonts.plusJakartaSans(
-        fontSize: 32,
+        fontSize: 28,
         fontWeight: FontWeight.w700,
-        height: 1.3,
-        letterSpacing: -0.64,
+        height: 1.25,
+        letterSpacing: -0.7,
         color: color,
       );
 
@@ -386,7 +416,6 @@ class AuthColors {
   final Color placeholder;
   final Color stroke;
   final Color link;
-  final Color buttonInnerBorder;
 
   AuthColors._({
     required this.isDark,
@@ -397,7 +426,6 @@ class AuthColors {
     required this.placeholder,
     required this.stroke,
     required this.link,
-    required this.buttonInnerBorder,
   });
 
   factory AuthColors.of(BuildContext context) {
@@ -413,9 +441,8 @@ class AuthColors {
       textPrimary: isDark ? scheme.onSurface : const Color(0xFF1A1C1E),
       grey: isDark ? scheme.onSurfaceVariant : const Color(0xFF6C7278),
       placeholder: isDark ? AppColors.darkTextSecondary : AppColors.placeholder,
-      stroke: isDark ? scheme.outline : const Color(0xFFEDF1F3),
+      stroke: isDark ? scheme.outline : const Color(0xFFE2E6EA),
       link: scheme.primary,
-      buttonInnerBorder: isDark ? scheme.primary : Colors.white,
     );
   }
 

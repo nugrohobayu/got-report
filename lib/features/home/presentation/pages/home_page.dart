@@ -6,6 +6,7 @@ import 'package:got_report/core/utils/date_formatter.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/core/widgets/error_view.dart';
 import 'package:got_report/features/kalender_tugas/presentation/pages/task_calendar_page.dart';
+import 'package:got_report/features/login/presentation/widgets/auth_widgets.dart';
 import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
 import 'package:got_report/features/profil/presentation/bloc/profile_cubit.dart';
 import 'package:got_report/features/profil/presentation/pages/profile_page.dart';
@@ -62,24 +63,32 @@ class _HomePageState extends State<HomePage> {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         child: Scaffold(
-          body: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                if (title != null) _TopBar(title: title),
-                Expanded(
-                  child: IndexedStack(
-                    index: _navIndex,
-                    children: [
-                      for (var i = 0; i < _tabs.length; i++)
-                        _opened.contains(i)
-                            ? _tabs[i].builder()
-                            : const SizedBox.shrink(),
-                    ],
-                  ),
+          backgroundColor: AuthColors.of(context).background,
+          body: Stack(
+            children: [
+              // Same backdrop as the login page, plus an orange corner glow.
+              const AuthHeaderBlur(),
+              const AuthCornerGlow(),
+              SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    if (title != null) _TopBar(title: title),
+                    Expanded(
+                      child: IndexedStack(
+                        index: _navIndex,
+                        children: [
+                          for (var i = 0; i < _tabs.length; i++)
+                            _opened.contains(i)
+                                ? _tabs[i].builder()
+                                : const SizedBox.shrink(),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           bottomNavigationBar: DecoratedBox(
             decoration: BoxDecoration(

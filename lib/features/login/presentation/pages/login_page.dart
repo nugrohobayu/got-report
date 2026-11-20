@@ -80,29 +80,38 @@ class _LoginPageState extends State<LoginPage> {
     return AuthScaffold(
       children: [
         const _Headline(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 36),
         AuthTextField(
           controller: _emailController,
-          hint: 'Email',
+          label: 'Email',
+          hint: 'nama@perusahaan.com',
+          icon: Icons.mail_outline_rounded,
           keyboardType: TextInputType.emailAddress,
           enabled: !busy,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 18),
         AuthPasswordField(
           controller: _passwordController,
-          hint: 'Kata sandi',
+          label: 'Kata sandi',
+          hint: 'Masukkan kata sandi',
           enabled: !busy,
           textInputAction: TextInputAction.done,
           autofillHints: const [AutofillHints.password],
           onSubmitted: (_) => _onLogin(),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 4),
         Align(
           alignment: Alignment.centerRight,
-          child: GestureDetector(
-            onTap: busy ? null : _onForgotPassword,
+          child: TextButton(
+            onPressed: busy ? null : _onForgotPassword,
+            style: TextButton.styleFrom(
+              foregroundColor: c.link,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
             child: state.forgotLoading
                 ? SizedBox(
                     width: 14,
@@ -117,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                     style: AuthText.small(
                       weight: FontWeight.w600,
                       color: c.link,
-                    ),
+                    ).copyWith(fontSize: 13),
                   ),
           ),
         ),
@@ -132,6 +141,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
+/// Logo and headline, centered.
 class _Headline extends StatelessWidget {
   const _Headline();
 
@@ -140,26 +150,20 @@ class _Headline extends StatelessWidget {
     final c = AuthColors.of(context);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Center(
-          child: SvgPicture.asset(
-            Theme.of(context).brightness == Brightness.dark
-                ? 'assets/images/logo/adatugas_logo_dark.svg'
-                : 'assets/images/logo/adatugas_logo.svg',
-            height: 120,
-            semanticsLabel: 'Ada Tugas',
-          ),
+        SvgPicture.asset(
+          Theme.of(context).brightness == Brightness.dark
+              ? 'assets/images/logo/adatugas_logo_dark.svg'
+              : 'assets/images/logo/adatugas_logo.svg',
+          height: 100,
+          semanticsLabel: 'Ada Tugas',
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
         Text(
           'Masuk ke Akun Anda',
+          textAlign: TextAlign.center,
           style: AuthText.title(color: c.textPrimary),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Masukkan email dan kata sandi untuk masuk',
-          style: AuthText.small(weight: FontWeight.w500, color: c.grey),
         ),
       ],
     );
