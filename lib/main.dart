@@ -22,6 +22,8 @@ import 'package:got_report/core/theme/app_theme.dart';
 import 'package:got_report/core/theme/theme_cubit.dart';
 import 'package:got_report/core/tracking/ping_tracker.dart';
 import 'package:got_report/features/form_dinamis/data/repositories/task_form_repository_impl.dart';
+import 'package:got_report/features/form_dinamis/presentation/pages/task_form_page.dart';
+import 'package:got_report/features/mulai_tugas/presentation/pages/start_task_page.dart';
 import 'package:got_report/features/form_dinamis/domain/repositories/task_form_repository.dart';
 import 'package:got_report/features/login/data/datasources/auth_remote_data_source.dart';
 import 'package:got_report/features/login/data/repositories/auth_repository_impl.dart';
@@ -114,6 +116,9 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(_pings);
+    // Whether the server sends push at all; read on app start, also
+    // before login.
+    _push.loadServerConfig();
     // Register for push and start the GPS trail on app start while logged
     // in, and after each login. The trail stops on logout.
     if (widget.sessionCubit.isAuthenticated) {
@@ -134,11 +139,27 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  /// Push payload route is `/tasks/<id>`. There is no task detail screen
-  /// yet, so open Beranda; the router still sends logged-out users to login.
+  /// Push payload route is `/tasks/<id>` (new task, revision). Opens Beranda
+  /// with the task's "Mulai tugas" screen on top: it shows the task and
+  /// lets it be started when its status allows; once started, the form
+  /// follows. Logged out, the router sends the user to login instead.
   void _openPushRoute(String? route) {
     AppLogger.routing('Push opened: $route');
-    _router.go('/');
+    // May be called from initState (app launched by the tap): wait until
+    // the router is built.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _router.go('/');
+      final taskId = taskIdFromPushRoute(route);
+      if (taskId == null || !widget.sessionCubit.isAuthenticated) return;
+      final params = {'id': taskId};
+      final started = await _router.pushNamed<bool>(
+        startTaskRouteName,
+        pathParameters: params,
+      );
+      if (started == true) {
+        _router.pushNamed(taskFormRouteName, pathParameters: params);
+      }
+    });
   }
 
   @override

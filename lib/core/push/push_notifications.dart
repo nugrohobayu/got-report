@@ -12,6 +12,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// opens a notification. `null` when the push carried no route.
 typedef PushOpenedCallback = void Function(String? route);
 
+final _taskRoute = RegExp(r'^/tasks/([A-Za-z0-9-]+)/?$');
+
+/// The task id in a push route `/tasks/<taskId>`, or `null` for any other
+/// route.
+String? taskIdFromPushRoute(String? route) =>
+    route == null ? null : _taskRoute.firstMatch(route.trim())?.group(1);
+
 /// Shows FCM pushes and handles taps on them.
 ///
 /// - App in the background / closed: Android shows `notification` pushes by
@@ -42,14 +49,9 @@ class PushNotifications {
     _isEnabled = isEnabled;
     try {
       await _initLocal(onOpened: onOpened);
-      if (kDebugMode) {
-        // Only for "Send test message" in the Firebase console, which asks
-        // for a registration token. The app itself registers by FID
-        // (PushService). Never logged in release builds.
-        // ignore: deprecated_member_use
-        final token = await FirebaseMessaging.instance.getToken();
-        debugPrint('Push: FCM token (debug only): $token');
-      }
+      // No getToken(): with firebase_messaging_installation_id_enabled in
+      // the manifest the token API throws. The app is addressed by its FID
+      // (logged by PushService in debug builds).
       FirebaseMessaging.onBackgroundMessage(_onBackgroundMessage);
       FirebaseMessaging.onMessage.listen(_onForegroundMessage);
 
@@ -87,10 +89,25 @@ class PushNotifications {
   static bool Function() _isEnabled = () => true;
 
   static Future<void> _onForegroundMessage(RemoteMessage message) async {
+    AppLogger.api('Push: received in foreground ${_describe(message)}');
     // Turned off in Profil, but the server may still push (e.g. the
     // unregister call failed): don't show it.
-    if (!_isEnabled()) return;
+    if (!_isEnabled()) {
+      AppLogger.api('Push: not shown, turned off in Profil');
+      return;
+    }
     await _show(message);
+  }
+
+  /// One log line for a push: its id and whether it has a `notification`
+  /// part, plus title and `data` in debug builds only (they hold task
+  /// titles and ids).
+  static String _describe(RemoteMessage message) {
+    final n = message.notification;
+    final kind = n == null ? 'data-only' : 'notification';
+    final base = '[${message.messageId}] $kind';
+    if (!kDebugMode) return base;
+    return '$base title="${n?.title}" data=${message.data}';
   }
 
   static Future<void> _show(RemoteMessage message) async {
@@ -121,6 +138,10 @@ class PushNotifications {
 /// that have a `notification` part.
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
+  // Separate isolate: debugPrint reaches `flutter run` / logcat.
+  debugPrint(
+    'Push: received in background ${PushNotifications._describe(message)}',
+  );
   if (message.notification != null) return;
   final prefs = await SharedPreferences.getInstance();
   if (prefs.getBool(PreferenceKeys.pushEnabled) == false) return;

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:firebase_app_installations/firebase_app_installations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:got_report/core/constants/app_constants.dart';
 import 'package:got_report/core/error/exceptions.dart';
 import 'package:got_report/core/network/api_client.dart';
@@ -34,6 +35,10 @@ enum PushStatus {
 /// removed on the server (`DELETE /api/v1/field/devices`) and not
 /// registered again until turned back on.
 ///
+/// The server can turn push off (`GET /api/v1/public/config` →
+/// `features["notification-push"]`); then nothing is registered and the
+/// switch in Profil is hidden ([PushStatus.unavailable]).
+///
 /// Every network call is best effort: push is optional, so failures are
 /// only logged and never block login, logout or the UI.
 class PushService {
@@ -44,8 +49,40 @@ class PushService {
 
   StreamSubscription<String>? _registeredSub;
 
-  bool get isSupported =>
+  /// `features["notification-push"]` from `GET /api/v1/public/config`;
+  /// `null` until read (or when the read failed: then we still try, and a
+  /// 404 from `/field/devices` is handled by [_guard]).
+  bool? _serverPush;
+  Future<void>? _configLoad;
+
+  bool get _deviceSupported =>
       (Platform.isAndroid || Platform.isIOS) && Firebase.apps.isNotEmpty;
+
+  /// Push can work here: the device has Firebase and the server has not
+  /// turned push off.
+  bool get isSupported => _deviceSupported && _serverPush != false;
+
+  /// Reads the server's push switch once per app run (retried on the next
+  /// call if the read failed). Skipped where push cannot work anyway.
+  Future<void> loadServerConfig() {
+    if (!_deviceSupported || _serverPush != null) return Future.value();
+    return _configLoad ??= _readServerConfig().whenComplete(() {
+      _configLoad = null;
+    });
+  }
+
+  Future<void> _readServerConfig() async {
+    try {
+      final data = await apiClient.get(ApiEndpoints.publicConfig);
+      final features = data is Map ? data['features'] : null;
+      _serverPush = features is Map && features['notification-push'] == true;
+      if (_serverPush == false) {
+        AppLogger.api('Push: turned off on this server (public config)');
+      }
+    } catch (e) {
+      AppLogger.api('Push: failed to read public config: $e');
+    }
+  }
 
   /// The user's choice in Profil (default on).
   bool get isEnabled => preferences.getBool(PreferenceKeys.pushEnabled) ?? true;
@@ -62,6 +99,7 @@ class PushService {
   }
 
   Future<PushStatus> status() async {
+    await loadServerConfig();
     if (!isSupported) return PushStatus.unavailable;
     if (!isEnabled) return PushStatus.off;
     return await _osAllows() ? PushStatus.on : PushStatus.blocked;
@@ -69,6 +107,7 @@ class PushService {
 
   /// Turns push on or off for this device and returns the new [status].
   Future<PushStatus> setEnabled(bool enabled) async {
+    await loadServerConfig();
     if (!isSupported) return PushStatus.unavailable;
     await preferences.setBool(PreferenceKeys.pushEnabled, enabled);
     if (enabled) {
@@ -85,6 +124,7 @@ class PushService {
   /// while logged in. Does nothing while the user has push turned off or
   /// the OS blocks notifications.
   Future<void> registerDevice() async {
+    await loadServerConfig();
     if (!isSupported || !isEnabled) return;
     try {
       final messaging = FirebaseMessaging.instance;
@@ -93,8 +133,12 @@ class PushService {
         AppLogger.api('Push: notifications blocked in phone settings');
         return;
       }
+      AppLogger.api('Push: permission ${settings.authorizationStatus.name}');
       // FCM reports a new FID here when registration completes or changes.
-      _registeredSub ??= messaging.onRegistered.listen(_sendFid);
+      _registeredSub ??= messaging.onRegistered.listen((fid) {
+        AppLogger.api('Push: FCM registered${_fidForLog(fid)}');
+        _sendFid(fid);
+      });
       await messaging.register();
       // Also send the current FID: the backend wants it on every app start,
       // and onRegistered may not fire again for an already registered app.
@@ -128,9 +172,13 @@ class PushService {
           'appVersion': AppConstants.appVersion,
         },
       );
-      AppLogger.api('Push: device registered');
+      AppLogger.api('Push: device registered${_fidForLog(fid)}');
     });
   }
+
+  /// The FID only in debug builds, to match it with the backend's device
+  /// list; release builds never log it.
+  static String _fidForLog(String fid) => kDebugMode ? ' (fid $fid)' : '';
 
   Future<void> _unregisterDevice() async {
     final fid = await deviceFid();

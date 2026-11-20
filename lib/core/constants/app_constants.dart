@@ -27,6 +27,10 @@ class ApiEndpoints {
   /// `GET`; profile, roles and permissions of the logged-in user.
   static const String me = '/api/v1/me';
 
+  /// `GET` without login: branding, optional features
+  /// (`features["notification-push"]`), minimum app versions.
+  static const String publicConfig = '/api/v1/public/config';
+
   // Account (all staff, also used by mobile)
   /// `PUT`; revokes every session, including the current one.
   static const String changePassword = '/api/v1/admin/account/password';
