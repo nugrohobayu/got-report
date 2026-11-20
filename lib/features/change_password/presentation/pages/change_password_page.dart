@@ -88,25 +88,28 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return AuthScaffold(
       children: [
         const _Headline(),
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
         AuthPasswordField(
           controller: _currentController,
-          hint: 'Kata sandi lama',
+          label: 'Kata sandi lama',
+          hint: 'Masukkan kata sandi lama',
           enabled: !busy,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.password],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 18),
         AuthPasswordField(
           controller: _newController,
-          hint: 'Kata sandi baru',
+          label: 'Kata sandi baru',
+          hint: 'Masukkan kata sandi baru',
           enabled: !busy,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.newPassword],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 18),
         AuthPasswordField(
           controller: _confirmController,
+          label: 'Konfirmasi kata sandi baru',
           hint: 'Ulangi kata sandi baru',
           enabled: !busy,
           textInputAction: TextInputAction.done,
@@ -178,30 +181,31 @@ class _Headline extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AuthColors.of(context);
 
+    // Same headline layout as the forgot password page.
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: c.link.withValues(alpha: c.isDark ? 0.2 : 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.lock_reset_rounded, size: 28, color: c.link),
+        Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: c.link.withValues(alpha: c.isDark ? 0.2 : 0.12),
+            shape: BoxShape.circle,
           ),
+          child: Icon(Icons.lock_reset_rounded, size: 34, color: c.link),
         ),
         const SizedBox(height: 24),
         Text(
           'Buat Kata Sandi Baru',
+          textAlign: TextAlign.center,
           style: AuthText.title(color: c.textPrimary),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Text(
           'Demi keamanan akun, ganti kata sandi sementara Anda sebelum '
           'mulai bekerja.',
-          style: AuthText.small(weight: FontWeight.w500, color: c.grey),
+          textAlign: TextAlign.center,
+          style: AuthText.small(weight: FontWeight.w500, color: c.grey)
+              .copyWith(fontSize: 14, height: 1.5),
         ),
       ],
     );
