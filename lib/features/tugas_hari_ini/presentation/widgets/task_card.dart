@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:got_report/core/theme/app_colors.dart';
 import 'package:got_report/core/utils/date_formatter.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_action.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/open_navigation.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_status_chip.dart';
 
-/// List item for a task: deadline, title, location, status + Navigasi,
-/// and the next action (Mulai / Lanjutkan tugas / Tanda tangan klien).
+/// List item for a task: status icon, title, template, deadline, location,
+/// revision note, and the next action (Mulai / Lanjutkan tugas / Tanda
+/// tangan klien) next to Navigasi.
 class TaskCard extends StatelessWidget {
   final TaskSummary task;
   final VoidCallback? onTap;
@@ -27,96 +29,104 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final due = task.dueAt;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final location = task.location;
-    final radius = BorderRadius.circular(16);
     final action = TaskAction.of(task);
+    final showNavigation = location != null && !task.isDone;
+    final note = task.lastRevisionNote;
+    final showNote = task.status == TaskStatus.perluRevisi &&
+        note != null &&
+        note.trim().isNotEmpty;
+    final radius = BorderRadius.circular(18);
 
-    return Material(
-      color: scheme.surface,
-      borderRadius: radius,
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      decoration: BoxDecoration(
         borderRadius: radius,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(color: scheme.outline),
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Status color strip.
-                Container(
-                  width: 6,
-                  decoration: BoxDecoration(
-                    color: task.statusColor,
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(16),
-                    ),
-                  ),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: AppColors.navy.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.schedule,
-                              size: 16,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                due == null
-                                    ? 'Tanpa tenggat'
-                                    : showDate
-                                        ? DateFormatter.dayTime(due)
-                                        : 'Tenggat ${DateFormatter.time(due)}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: scheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                            TaskStatusChip(task: task),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          task.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (location != null) ...[
-                          const SizedBox(height: 4),
+              ],
+      ),
+      child: Material(
+        color: scheme.surface,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              border: Border.all(color: scheme.outline.withValues(alpha: 0.7)),
+            ),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _StatusBadge(task: task),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            location.address?.isNotEmpty == true
-                                ? '${location.name} · ${location.address}'
-                                : location.name,
+                            task.title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 13,
-                              color: scheme.onSurfaceVariant,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              height: 1.25,
+                              color: scheme.onSurface,
                             ),
                           ),
+                          if (task.templateName?.isNotEmpty == true) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              task.templateName!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ],
-                        if (action != null) ...[
-                          const SizedBox(height: 10),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    TaskStatusChip(task: task),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _DuePill(task: task, showDate: showDate),
+                if (location != null) ...[
+                  const SizedBox(height: 10),
+                  _LocationRow(location: location),
+                ],
+                if (showNote) ...[
+                  const SizedBox(height: 10),
+                  _RevisionNote(note: note),
+                ],
+                if (action != null || showNavigation) ...[
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      if (action != null)
+                        Expanded(
                           // Tonal, not solid: the screen keeps one solid
                           // blue main button.
-                          FilledButton.tonalIcon(
+                          child: FilledButton.tonalIcon(
                             onPressed: () => runTaskAction(
                               context,
                               task,
@@ -124,33 +134,209 @@ class TaskCard extends StatelessWidget {
                               onChanged: onChanged,
                             ),
                             style: FilledButton.styleFrom(
-                              minimumSize: const Size(0, 44),
+                              minimumSize: const Size(0, 48),
                               backgroundColor: scheme.primaryContainer,
                               foregroundColor: scheme.onPrimaryContainer,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             icon: Icon(action.icon, size: 20),
                             label: Text(action.label),
                           ),
-                        ],
+                        )
+                      else
+                        const Spacer(),
+                      if (showNavigation) ...[
+                        const SizedBox(width: 10),
+                        IconButton.outlined(
+                          tooltip: 'Navigasi',
+                          onPressed: () => openNavigation(context, location),
+                          style: IconButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            foregroundColor: scheme.primary,
+                            side: BorderSide(color: scheme.outline),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.directions, size: 24),
+                        ),
                       ],
-                    ),
+                    ],
                   ),
-                ),
-                if (location != null && !task.isDone)
-                  Center(
-                    child: IconButton(
-                      tooltip: 'Navigasi',
-                      iconSize: 28,
-                      color: scheme.primary,
-                      onPressed: () => openNavigation(context, location),
-                      icon: const Icon(Icons.directions),
-                    ),
-                  ),
-                const SizedBox(width: 4),
+                ],
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Rounded square tinted with the status color, with an icon per status.
+class _StatusBadge extends StatelessWidget {
+  final TaskSummary task;
+
+  const _StatusBadge({required this.task});
+
+  IconData get _icon {
+    if (task.isDone) return Icons.task_alt;
+    if (task.isLate) return Icons.alarm;
+    return switch (task.status) {
+      TaskStatus.dikerjakan => Icons.engineering_outlined,
+      TaskStatus.menungguTtd => Icons.draw_outlined,
+      TaskStatus.perluRevisi => Icons.replay,
+      _ => Icons.assignment_outlined,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = task.statusColor;
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(_icon, color: color, size: 24),
+    );
+  }
+}
+
+/// Deadline as a small pill; red when the task is late.
+class _DuePill extends StatelessWidget {
+  final TaskSummary task;
+  final bool showDate;
+
+  const _DuePill({required this.task, required this.showDate});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final due = task.dueAt;
+    final late = task.isLate;
+    final color = late ? AppColors.statusTerlambat : scheme.onSurfaceVariant;
+    final text = due == null
+        ? 'Tanpa tenggat'
+        : showDate
+            ? DateFormatter.dayTime(due)
+            : 'Tenggat ${DateFormatter.time(due)}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: late
+            ? AppColors.statusTerlambat.withValues(alpha: 0.10)
+            : scheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(late ? Icons.alarm : Icons.schedule, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Location name with the address below it.
+class _LocationRow extends StatelessWidget {
+  final TaskLocation location;
+
+  const _LocationRow({required this.location});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final address = location.address;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 1),
+          child: Icon(Icons.place_outlined, size: 18, color: AppColors.orange),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                location.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: scheme.onSurface,
+                ),
+              ),
+              if (address != null && address.isNotEmpty)
+                Text(
+                  address,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The supervisor's note for a task sent back for revision.
+class _RevisionNote extends StatelessWidget {
+  final String note;
+
+  const _RevisionNote({required this.note});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      decoration: BoxDecoration(
+        color: AppColors.orange.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.chat_outlined, size: 16, color: AppColors.orange),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              'Catatan revisi: $note',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 13, color: scheme.onSurface),
+            ),
+          ),
+        ],
       ),
     );
   }
