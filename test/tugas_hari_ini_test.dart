@@ -221,5 +221,10 @@ void main() {
       tester.getTopLeft(find.text('Tugas B')).dy,
       lessThan(tester.getTopLeft(find.text('Tugas A')).dy),
     );
+
+    // The "Kalender tugas" shortcut switches to the Kalender Kerja tab.
+    await tester.tap(find.text('Kalender tugas'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kalender Kerja'), findsOneWidget);
   });
 }

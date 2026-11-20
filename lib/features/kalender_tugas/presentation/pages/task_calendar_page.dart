@@ -12,8 +12,8 @@ import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_car
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_status_chip.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-/// Month calendar of the worker's tasks; a dot per task under each day,
-/// and the tasks of the selected day below.
+/// Kalender Kerja tab: month calendar of the worker's tasks; a dot per task
+/// under each day, and the tasks of the selected day below.
 class TaskCalendarPage extends StatelessWidget {
   const TaskCalendarPage({super.key});
 
@@ -33,50 +33,48 @@ class _TaskCalendarView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Kalender Tugas')),
-      body: BlocBuilder<TaskCalendarCubit, TaskCalendarState>(
-        builder: (context, state) {
-          final cubit = context.read<TaskCalendarCubit>();
-          return RefreshIndicator(
-            onRefresh: cubit.load,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    padding: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: scheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: scheme.outline),
-                    ),
-                    child: _Calendar(state: state),
+    // Shown as a tab of HomePage, which provides the Scaffold and title.
+    return BlocBuilder<TaskCalendarCubit, TaskCalendarState>(
+      builder: (context, state) {
+        final cubit = context.read<TaskCalendarCubit>();
+        return RefreshIndicator(
+          onRefresh: cubit.load,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: scheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: scheme.outline),
                   ),
+                  child: _Calendar(state: state),
                 ),
-                if (state.status == LoadStatus.loading)
-                  const SliverToBoxAdapter(
-                    child: LinearProgressIndicator(minHeight: 2),
-                  ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                    child: Text(
-                      DateFormatter.fullDate(state.selectedDay),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+              ),
+              if (state.status == LoadStatus.loading)
+                const SliverToBoxAdapter(
+                  child: LinearProgressIndicator(minHeight: 2),
+                ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                  child: Text(
+                    DateFormatter.fullDate(state.selectedDay),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-                ..._dayTasks(context, state),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+              ..._dayTasks(context, state),
+            ],
+          ),
+        );
+      },
     );
   }
 

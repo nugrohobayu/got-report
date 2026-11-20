@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:got_report/core/router/app_router.dart';
 import 'package:got_report/core/utils/date_formatter.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/core/widgets/error_view.dart';
+import 'package:got_report/features/kalender_tugas/presentation/pages/task_calendar_page.dart';
 import 'package:got_report/features/profil/presentation/pages/profile_page.dart';
 import 'package:got_report/features/riwayat_penugasan/presentation/pages/task_history_page.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
@@ -13,8 +12,9 @@ import 'package:got_report/features/tugas_hari_ini/presentation/bloc/today_tasks
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/nearest_task_card.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_card.dart';
 
-/// Main shell after login, with a bottom navbar of three tabs:
-/// Beranda (today's tasks), Riwayat (assignment history) and Profil.
+/// Main shell after login, with a bottom navbar of four tabs: Beranda
+/// (today's tasks), Kalender (Kalender Kerja), Riwayat (assignment history)
+/// and Profil.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -56,10 +56,7 @@ class _HomePageState extends State<HomePage> {
         ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _navIndex,
-          onDestinationSelected: (i) => setState(() {
-            _navIndex = i;
-            _opened.add(i);
-          }),
+          onDestinationSelected: _select,
           destinations: [
             for (final tab in _tabs)
               NavigationDestination(
@@ -72,6 +69,42 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  void _select(int index) => setState(() {
+        _navIndex = index;
+        _opened.add(index);
+      });
+
+  late final List<_Tab> _tabs = [
+    _Tab(
+      label: 'Beranda',
+      title: 'Beranda',
+      icon: Icons.home_outlined,
+      selectedIcon: Icons.home,
+      builder: () => _BerandaTab(onOpenCalendar: () => _select(1)),
+    ),
+    _Tab(
+      label: 'Kalender',
+      title: 'Kalender Kerja',
+      icon: Icons.calendar_month_outlined,
+      selectedIcon: Icons.calendar_month,
+      builder: () => const TaskCalendarPage(),
+    ),
+    _Tab(
+      label: 'Riwayat',
+      title: 'Riwayat Penugasan',
+      icon: Icons.history,
+      selectedIcon: Icons.history,
+      builder: () => const TaskHistoryPage(),
+    ),
+    _Tab(
+      label: 'Profil',
+      title: 'Profil',
+      icon: Icons.person_outline,
+      selectedIcon: Icons.person,
+      builder: () => const ProfilePage(),
+    ),
+  ];
 }
 
 class _Tab {
@@ -89,30 +122,6 @@ class _Tab {
     required this.builder,
   });
 }
-
-final _tabs = [
-  _Tab(
-    label: 'Beranda',
-    title: 'Beranda',
-    icon: Icons.home_outlined,
-    selectedIcon: Icons.home,
-    builder: () => const _BerandaTab(),
-  ),
-  _Tab(
-    label: 'Riwayat',
-    title: 'Riwayat Penugasan',
-    icon: Icons.history,
-    selectedIcon: Icons.history,
-    builder: () => const TaskHistoryPage(),
-  ),
-  _Tab(
-    label: 'Profil',
-    title: 'Profil',
-    icon: Icons.person_outline,
-    selectedIcon: Icons.person,
-    builder: () => const ProfilePage(),
-  ),
-];
 
 class _TopBar extends StatelessWidget {
   final String title;
@@ -139,20 +148,25 @@ class _TopBar extends StatelessWidget {
 /// Beranda: today's progress, the nearest task to do, a shortcut to the
 /// task calendar, and the rest of today's tasks.
 class _BerandaTab extends StatelessWidget {
-  const _BerandaTab();
+  /// Switches to the Kalender tab.
+  final VoidCallback onOpenCalendar;
+
+  const _BerandaTab({required this.onOpenCalendar});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
           TodayTasksCubit(context.read<TaskRepository>())..load(),
-      child: const _TodayContent(),
+      child: _TodayContent(onOpenCalendar: onOpenCalendar),
     );
   }
 }
 
 class _TodayContent extends StatelessWidget {
-  const _TodayContent();
+  final VoidCallback onOpenCalendar;
+
+  const _TodayContent({required this.onOpenCalendar});
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +186,7 @@ class _TodayContent extends StatelessWidget {
             children: [
               _Greeting(state: state),
               const SizedBox(height: 16),
-              const _CalendarMenu(),
+              _CalendarMenu(onTap: onOpenCalendar),
               const SizedBox(height: 24),
               if (firstLoad)
                 const Padding(
@@ -268,7 +282,9 @@ class _Greeting extends StatelessWidget {
 
 /// Menu tile that opens the task calendar.
 class _CalendarMenu extends StatelessWidget {
-  const _CalendarMenu();
+  final VoidCallback onTap;
+
+  const _CalendarMenu({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -279,7 +295,7 @@ class _CalendarMenu extends StatelessWidget {
       borderRadius: radius,
       child: InkWell(
         borderRadius: radius,
-        onTap: () => context.pushNamed(AppRouter.taskCalendar),
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
