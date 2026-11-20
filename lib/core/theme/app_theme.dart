@@ -215,12 +215,19 @@ class AppTheme {
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (states) =>
-              states.contains(WidgetState.selected) ? Colors.white : null,
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.white
+              : colorScheme.onSurfaceVariant,
         ),
         trackColor: WidgetStateProperty.resolveWith(
-          (states) =>
-              states.contains(WidgetState.selected) ? AppColors.blue : null,
+          (states) => states.contains(WidgetState.selected)
+              ? AppColors.blue
+              : colorScheme.surfaceContainerHighest,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.transparent
+              : colorScheme.onSurfaceVariant,
         ),
       ),
       checkboxTheme: CheckboxThemeData(
@@ -261,7 +268,12 @@ class AppTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        labelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+        // Explicit color: without it the label rendered white on a white
+        // chip in light mode.
+        labelStyle: GoogleFonts.plusJakartaSans(
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );

@@ -125,7 +125,8 @@ class _HomePageState extends State<HomePage> {
     ),
     _Tab(
       label: 'Profil',
-      title: 'Profil',
+      // No header: the profile card is the top of the page.
+      title: null,
       icon: Icons.person_outline,
       selectedIcon: Icons.person,
       builder: () => const ProfilePage(),
