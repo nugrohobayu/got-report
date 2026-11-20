@@ -110,7 +110,8 @@ class _TaskCalendarView extends StatelessWidget {
         sliver: SliverList.separated(
           itemCount: tasks.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (_, i) => TaskCard(task: tasks[i]),
+          itemBuilder: (_, i) =>
+              TaskCard(task: tasks[i], onChanged: cubit.load),
         ),
       ),
     ];

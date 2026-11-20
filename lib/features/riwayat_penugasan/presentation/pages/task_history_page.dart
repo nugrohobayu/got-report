@@ -245,7 +245,7 @@ class _HistoryList extends StatelessWidget {
                     color: scheme.onSurfaceVariant,
                   ),
                 ),
-                ..._grouped(tasks),
+                ..._grouped(tasks, onChanged: cubit.load),
               ],
             ],
           ),
@@ -255,7 +255,10 @@ class _HistoryList extends StatelessWidget {
   }
 
   /// A date header before each deadline day, then that day's cards.
-  List<Widget> _grouped(List<TaskSummary> tasks) {
+  List<Widget> _grouped(
+    List<TaskSummary> tasks, {
+    required VoidCallback onChanged,
+  }) {
     final widgets = <Widget>[];
     DateTime? lastDay;
     for (var i = 0; i < tasks.length; i++) {
@@ -272,7 +275,7 @@ class _HistoryList extends StatelessWidget {
         lastDay = day;
       }
       widgets
-        ..add(TaskCard(task: tasks[i]))
+        ..add(TaskCard(task: tasks[i], onChanged: onChanged))
         ..add(const SizedBox(height: 10));
     }
     return widgets;

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:got_report/core/auth/session_cubit.dart';
+import 'package:got_report/core/location/location_service.dart';
+import 'package:got_report/core/network/api_client.dart';
+import 'package:got_report/core/push/push_service.dart';
 import 'package:got_report/core/theme/theme_cubit.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
@@ -11,6 +14,8 @@ import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/fake_location_service.dart';
 
 class _FakeProfileRepository implements ProfileRepository {
   @override
@@ -74,8 +79,15 @@ void main() {
           RepositoryProvider<TaskRepository>.value(
             value: _EmptyTaskRepository(),
           ),
+          RepositoryProvider<LocationService>.value(
+            value: FakeLocationService(),
+          ),
           RepositoryProvider<ProfileRepository>.value(
             value: _FakeProfileRepository(),
+          ),
+          // No Firebase in tests: push is "unavailable", row hidden.
+          RepositoryProvider<PushService>.value(
+            value: PushService(ApiClient(baseUrl: 'http://localhost'), prefs),
           ),
         ],
         child: MultiBlocProvider(

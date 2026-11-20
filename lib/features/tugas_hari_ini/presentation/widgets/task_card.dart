@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:got_report/core/utils/date_formatter.dart';
+import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_action.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/open_navigation.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_status_chip.dart';
 
-/// List item for a task: deadline, title, location, status + Navigasi.
+/// List item for a task: deadline, title, location, status + Navigasi,
+/// and the next action (Mulai / Lanjutkan tugas / Tanda tangan klien).
 class TaskCard extends StatelessWidget {
   final TaskSummary task;
   final VoidCallback? onTap;
@@ -12,11 +14,15 @@ class TaskCard extends StatelessWidget {
   /// Show the date next to the time (for lists spanning several days).
   final bool showDate;
 
+  /// Called after working on the task from this card (reload the list).
+  final VoidCallback? onChanged;
+
   const TaskCard({
     super.key,
     required this.task,
     this.onTap,
     this.showDate = false,
+    this.onChanged,
   });
 
   @override
@@ -25,6 +31,7 @@ class TaskCard extends StatelessWidget {
     final due = task.dueAt;
     final location = task.location;
     final radius = BorderRadius.circular(16);
+    final action = TaskAction.of(task);
 
     return Material(
       color: scheme.surface,
@@ -103,6 +110,26 @@ class TaskCard extends StatelessWidget {
                               fontSize: 13,
                               color: scheme.onSurfaceVariant,
                             ),
+                          ),
+                        ],
+                        if (action != null) ...[
+                          const SizedBox(height: 10),
+                          // Tonal, not solid: the screen keeps one solid
+                          // blue main button.
+                          FilledButton.tonalIcon(
+                            onPressed: () => runTaskAction(
+                              context,
+                              task,
+                              action,
+                              onChanged: onChanged,
+                            ),
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 44),
+                              backgroundColor: scheme.primaryContainer,
+                              foregroundColor: scheme.onPrimaryContainer,
+                            ),
+                            icon: Icon(action.icon, size: 20),
+                            label: Text(action.label),
                           ),
                         ],
                       ],

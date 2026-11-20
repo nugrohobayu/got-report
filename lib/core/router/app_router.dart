@@ -6,8 +6,10 @@ import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/core/utils/app_logger.dart';
 import 'package:got_report/features/change_password/presentation/pages/change_password_page.dart';
 import 'package:got_report/features/download_test/presentation/pages/download_test_page.dart';
+import 'package:got_report/features/form_dinamis/presentation/pages/task_form_page.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
 import 'package:got_report/features/login/presentation/pages/login_page.dart';
+import 'package:got_report/features/mulai_tugas/presentation/pages/start_task_page.dart';
 
 class AppRouter {
   AppRouter._();
@@ -37,6 +39,22 @@ class AppRouter {
             path: '/',
             name: 'home',
             builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/tasks/:id/start',
+            name: startTaskRouteName,
+            builder: (context, state) =>
+                StartTaskPage(taskId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/tasks/:id/form',
+            name: taskFormRouteName,
+            builder: (context, state) => TaskFormPage(
+              taskId: state.pathParameters['id']!,
+              fromFirstStep: fromFirstStepQuery.entries.every(
+                (e) => state.uri.queryParameters[e.key] == e.value,
+              ),
+            ),
           ),
           GoRoute(
             path: '/download-test',

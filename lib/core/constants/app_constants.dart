@@ -35,7 +35,37 @@ class ApiEndpoints {
   /// `GET ?status=&dueFrom=&dueTo=`; without `status` only unfinished tasks.
   static const String fieldTasks = '/api/v1/field/tasks';
 
-  /// `POST {fid, platform, appVersion}`: register this device for push.
+  /// `GET`: detail + template (requireQr, schema).
+  static String fieldTask(String id) => '$fieldTasks/$id';
+
+  /// `POST {latitude, longitude, accuracyM, mock, deviceTime, qrCode?}`.
+  static String fieldTaskStart(String id) => '$fieldTasks/$id/start';
+
+  /// `POST {answers: [{fieldId, value}], latitude, longitude, ...}`.
+  static String fieldStepAnswers(String id, String stepId) =>
+      '$fieldTasks/$id/steps/$stepId/answers';
+
+  /// `POST` multipart photo: stepId, fieldId, file, GPS, deviceTime.
+  static String fieldMedia(String id) => '$fieldTasks/$id/media';
+
+  /// `GET`: watermark status (PROCESSING / READY / FAILED).
+  static String fieldMediaItem(String id, String mediaId) =>
+      '$fieldTasks/$id/media/$mediaId';
+
+  /// `POST` (leader): → MENUNGGU_TTD, or SELESAI without signature.
+  static String fieldSubmit(String id) => '$fieldTasks/$id/submit';
+
+  /// `POST` multipart (leader): signerName, signerTitle?, file, GPS.
+  static String fieldSignature(String id) => '$fieldTasks/$id/signature';
+
+  /// `GET`: current answers, photos, step locks, signature.
+  static String fieldSubmission(String id) => '$fieldTasks/$id/submission';
+
+  /// `GET`: file bytes (photo, signature, PDF) with access check.
+  static String file(String id) => '/api/v1/files/$id';
+
+  /// `POST {fid, platform, appVersion}`: register this device for push;
+  /// `DELETE ?fid=`: stop pushing to it.
   /// 404 when the server's notification-push profile is off.
   static const String fieldDevices = '/api/v1/field/devices';
 }

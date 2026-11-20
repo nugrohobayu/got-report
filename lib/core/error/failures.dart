@@ -16,10 +16,13 @@ class ServerFailure extends Failure {
   /// Backend error code, e.g. `AUTH_INVALID_CREDENTIALS`.
   final String? code;
 
-  const ServerFailure(super.message, {this.code});
+  /// Backend `error.details`, e.g. `{radiusM: 150, distanceM: 498}`.
+  final Map<String, dynamic> details;
+
+  const ServerFailure(super.message, {this.code, this.details = const {}});
 
   @override
-  List<Object?> get props => [message, code];
+  List<Object?> get props => [message, code, details];
 }
 
 class NetworkFailure extends Failure {

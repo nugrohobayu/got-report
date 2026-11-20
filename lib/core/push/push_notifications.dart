@@ -5,6 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:got_report/core/utils/app_logger.dart';
+import 'package:got_report/core/utils/preference_keys.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Called with the push `data.route` (e.g. `/tasks/<id>`) when the user
 /// opens a notification. `null` when the push carried no route.
@@ -32,8 +34,12 @@ class PushNotifications {
 
   /// Call once after `Firebase.initializeApp()`. Does nothing when Firebase
   /// is not available (e.g. missing google-services.json, tests).
-  static Future<void> init({required PushOpenedCallback onOpened}) async {
+  static Future<void> init({
+    required PushOpenedCallback onOpened,
+    required bool Function() isEnabled,
+  }) async {
     if (!Platform.isAndroid || Firebase.apps.isEmpty) return;
+    _isEnabled = isEnabled;
     try {
       await _initLocal(onOpened: onOpened);
       if (kDebugMode) {
@@ -68,9 +74,8 @@ class PushNotifications {
       const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       ),
-      onDidReceiveNotificationResponse: onOpened == null
-          ? null
-          : (response) => onOpened(response.payload),
+      onDidReceiveNotificationResponse:
+          onOpened == null ? null : (response) => onOpened(response.payload),
     );
     await _local
         .resolvePlatformSpecificImplementation<
@@ -78,8 +83,15 @@ class PushNotifications {
         ?.createNotificationChannel(channel);
   }
 
-  static Future<void> _onForegroundMessage(RemoteMessage message) =>
-      _show(message);
+  /// The user's Notifikasi switch in Profil.
+  static bool Function() _isEnabled = () => true;
+
+  static Future<void> _onForegroundMessage(RemoteMessage message) async {
+    // Turned off in Profil, but the server may still push (e.g. the
+    // unregister call failed): don't show it.
+    if (!_isEnabled()) return;
+    await _show(message);
+  }
 
   static Future<void> _show(RemoteMessage message) async {
     final n = message.notification;
@@ -110,6 +122,8 @@ class PushNotifications {
 @pragma('vm:entry-point')
 Future<void> _onBackgroundMessage(RemoteMessage message) async {
   if (message.notification != null) return;
+  final prefs = await SharedPreferences.getInstance();
+  if (prefs.getBool(PreferenceKeys.pushEnabled) == false) return;
   await Firebase.initializeApp();
   await PushNotifications._initLocal();
   await PushNotifications._show(message);

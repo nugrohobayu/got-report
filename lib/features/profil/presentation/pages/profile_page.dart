@@ -1,6 +1,8 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:got_report/core/constants/app_constants.dart';
+import 'package:got_report/core/push/push_service.dart';
 import 'package:got_report/core/theme/app_colors.dart';
 import 'package:got_report/core/theme/theme_cubit.dart';
 import 'package:got_report/core/utils/load_status.dart';
@@ -9,7 +11,8 @@ import 'package:got_report/features/login/presentation/widgets/logout_dialog.dar
 import 'package:got_report/features/profil/domain/entities/user_profile.dart';
 import 'package:got_report/features/profil/presentation/bloc/profile_cubit.dart';
 
-/// Profil tab: profile header card, settings, app info and logout.
+/// Profil tab: profile header card, settings (notifications, dark mode),
+/// app info and logout.
 ///
 /// Reads the [ProfileCubit] provided (and loaded) by HomePage, which also
 /// uses it for the Beranda greeting.
@@ -248,6 +251,7 @@ class _SettingsCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return _GroupCard(
       children: [
+        const _NotificationTile(),
         SwitchListTile(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -259,6 +263,129 @@ class _SettingsCard extends StatelessWidget {
           value: isDark,
           onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
         ),
+      ],
+    );
+  }
+}
+
+/// Notifikasi switch. Hidden when push is not available on this device.
+///
+/// Off → the device is removed on the server and no longer registered.
+/// Blocked in the phone settings → switch is off and tapping it opens the
+/// app's notification settings; the status is re-read when the user comes
+/// back to the app.
+class _NotificationTile extends StatefulWidget {
+  const _NotificationTile();
+
+  @override
+  State<_NotificationTile> createState() => _NotificationTileState();
+}
+
+class _NotificationTileState extends State<_NotificationTile>
+    with WidgetsBindingObserver {
+  PushStatus? _status;
+  bool _busy = false;
+
+  PushService get _push => context.read<PushService>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refresh();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Back from the phone settings: the permission may have changed.
+    if (state == AppLifecycleState.resumed) _refresh(registerIfAllowed: true);
+  }
+
+  Future<void> _refresh({bool registerIfAllowed = false}) async {
+    final before = _status;
+    final status = await _push.status();
+    if (!mounted) return;
+    setState(() => _status = status);
+    // Unblocked in the phone settings while on in the app: register now.
+    if (registerIfAllowed &&
+        before == PushStatus.blocked &&
+        status == PushStatus.on) {
+      await _push.registerDevice();
+    }
+  }
+
+  Future<void> _onChanged(bool value) async {
+    if (_status == PushStatus.blocked) {
+      await AppSettings.openAppSettings(type: AppSettingsType.notification);
+      return;
+    }
+    setState(() => _busy = true);
+    final status = await _push.setEnabled(value);
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _status = status;
+    });
+    if (status == PushStatus.blocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Izin notifikasi ditolak. Aktifkan di pengaturan HP.',
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _status;
+    if (status == null || status == PushStatus.unavailable) {
+      return const SizedBox.shrink();
+    }
+    final scheme = Theme.of(context).colorScheme;
+    final blocked = status == PushStatus.blocked;
+    final subtitle = switch (status) {
+      PushStatus.on => 'Tugas baru, revisi, dan tugas terlambat',
+      PushStatus.off => 'Notifikasi dimatikan',
+      _ => 'Diblokir di pengaturan HP. Ketuk untuk membuka pengaturan.',
+    };
+
+    return Column(
+      children: [
+        ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          leading: const _RowIcon(Icons.notifications_outlined),
+          title: const Text(
+            'Notifikasi',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: blocked ? scheme.error : scheme.onSurfaceVariant,
+            ),
+          ),
+          onTap: _busy ? null : () => _onChanged(status != PushStatus.on),
+          trailing: _busy
+              ? const SizedBox.square(
+                  dimension: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                )
+              : Switch(
+                  value: status == PushStatus.on,
+                  onChanged: _onChanged,
+                ),
+        ),
+        Divider(height: 1, color: scheme.outline),
       ],
     );
   }

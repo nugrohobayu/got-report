@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
@@ -50,6 +51,32 @@ class ApiClient {
 
   Future<dynamic> post(String path, {Object? body}) {
     return _send(() => _dio.post(path, data: body));
+  }
+
+  /// `multipart/form-data`; [fields] values are strings or [MultipartFile].
+  Future<dynamic> postMultipart(String path, Map<String, dynamic> fields) {
+    return _send(() => _dio.post(path, data: FormData.fromMap(fields)));
+  }
+
+  /// Raw bytes, e.g. `GET /api/v1/files/{id}` (needs the auth header, so
+  /// images cannot be loaded by URL).
+  Future<Uint8List> getBytes(String path) async {
+    final data = await _send(
+      () => _dio.get<List<int>>(
+        path,
+        options: Options(responseType: ResponseType.bytes),
+      ),
+    );
+    if (data is Uint8List) return data;
+    if (data is List<int>) return Uint8List.fromList(data);
+    throw const ParsingException();
+  }
+
+  Future<dynamic> delete(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) {
+    return _send(() => _dio.delete(path, queryParameters: queryParameters));
   }
 
   Future<dynamic> put(String path, {Object? body}) {
@@ -107,17 +134,22 @@ class ApiClient {
   ServerException _serverException(dynamic data, int statusCode) {
     String? code;
     String? message;
+    var details = const <String, dynamic>{};
 
     if (data is Map) {
       final error = data['error'];
       if (error is Map) {
         code = error['code']?.toString();
         message = error['message']?.toString();
-        // VALIDATION_ERROR: append per-field details, e.g. "email: wajib diisi".
-        final details = error['details'];
-        if (details is Map && details.isNotEmpty) {
-          final lines = details.entries.map((e) => '${e.key}: ${e.value}');
-          message = '${message ?? ''}\n${lines.join('\n')}'.trim();
+        final rawDetails = error['details'];
+        if (rawDetails is Map && rawDetails.isNotEmpty) {
+          details = rawDetails.map((k, v) => MapEntry(k.toString(), v));
+          // Append per-field details, e.g. "email: wajib diisi". EVIDENCE_*
+          // details (distance, accuracy) are formatted by the start screen.
+          if (!(code?.startsWith('EVIDENCE_') ?? false)) {
+            final lines = details.entries.map((e) => '${e.key}: ${e.value}');
+            message = '${message ?? ''}\n${lines.join('\n')}'.trim();
+          }
         }
       } else if (data['message'] != null) {
         message = data['message'].toString();
@@ -128,6 +160,7 @@ class ApiClient {
       message: message ?? 'Permintaan gagal (kode $statusCode)',
       statusCode: statusCode,
       code: code,
+      details: details,
     );
   }
 

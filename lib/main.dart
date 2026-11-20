@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:got_report/core/auth/auth_interceptor.dart';
 import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/core/auth/token_storage.dart';
+import 'package:got_report/core/location/location_service.dart';
 import 'package:got_report/core/network/api_client.dart';
 import 'package:got_report/core/network/download_service.dart';
 import 'package:got_report/core/push/push_notifications.dart';
@@ -19,9 +20,14 @@ import 'package:got_report/core/utils/app_logger.dart';
 import 'package:got_report/core/router/app_router.dart';
 import 'package:got_report/core/theme/app_theme.dart';
 import 'package:got_report/core/theme/theme_cubit.dart';
+import 'package:got_report/features/form_dinamis/data/repositories/task_form_repository_impl.dart';
+import 'package:got_report/features/form_dinamis/domain/repositories/task_form_repository.dart';
 import 'package:got_report/features/login/data/datasources/auth_remote_data_source.dart';
 import 'package:got_report/features/login/data/repositories/auth_repository_impl.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
+import 'package:got_report/features/mulai_tugas/data/datasources/start_task_remote_data_source.dart';
+import 'package:got_report/features/mulai_tugas/data/repositories/start_task_repository_impl.dart';
+import 'package:got_report/features/mulai_tugas/domain/repositories/start_task_repository.dart';
 import 'package:got_report/features/profil/data/datasources/profile_remote_data_source.dart';
 import 'package:got_report/features/profil/data/repositories/profile_repository_impl.dart';
 import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
@@ -94,7 +100,8 @@ class _MyAppState extends State<MyApp> {
     ),
   );
   late final GoRouter _router = AppRouter.create(widget.sessionCubit);
-  late final PushService _push = PushService(_apiClient);
+  late final PushService _push =
+      PushService(_apiClient, widget.sharedPreferences);
   late final StreamSubscription<SessionStatus> _sessionSub;
 
   @override
@@ -105,7 +112,10 @@ class _MyAppState extends State<MyApp> {
     _sessionSub = widget.sessionCubit.stream
         .where((s) => s == SessionStatus.authenticated)
         .listen((_) => _push.registerDevice());
-    PushNotifications.init(onOpened: _openPushRoute);
+    PushNotifications.init(
+      onOpened: _openPushRoute,
+      isEnabled: () => _push.isEnabled,
+    );
   }
 
   /// Push payload route is `/tasks/<id>`. There is no task detail screen
@@ -129,6 +139,7 @@ class _MyAppState extends State<MyApp> {
       providers: [
         RepositoryProvider<ApiClient>.value(value: _apiClient),
         RepositoryProvider<TokenStorage>.value(value: widget.tokenStorage),
+        RepositoryProvider<PushService>.value(value: _push),
         RepositoryProvider<DownloadService>(
           create: (_) => DownloadService(),
         ),
@@ -142,6 +153,17 @@ class _MyAppState extends State<MyApp> {
         RepositoryProvider<TaskRepository>(
           create: (_) =>
               TaskRepositoryImpl(TaskRemoteDataSourceImpl(_apiClient)),
+        ),
+        RepositoryProvider<StartTaskRepository>(
+          create: (_) => StartTaskRepositoryImpl(
+            StartTaskRemoteDataSourceImpl(_apiClient),
+          ),
+        ),
+        RepositoryProvider<TaskFormRepository>(
+          create: (_) => TaskFormRepositoryImpl(_apiClient),
+        ),
+        RepositoryProvider<LocationService>(
+          create: (_) => const GeolocatorLocationService(),
         ),
         RepositoryProvider<ProfileRepository>(
           create: (_) =>

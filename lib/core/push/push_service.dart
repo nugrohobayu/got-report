@@ -8,26 +8,51 @@ import 'package:got_report/core/constants/app_constants.dart';
 import 'package:got_report/core/error/exceptions.dart';
 import 'package:got_report/core/network/api_client.dart';
 import 'package:got_report/core/utils/app_logger.dart';
+import 'package:got_report/core/utils/preference_keys.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// What the Notifikasi switch in Profil shows.
+enum PushStatus {
+  /// Push cannot work here (no Firebase, unsupported platform).
+  unavailable,
+
+  /// On, and the OS allows notifications.
+  on,
+
+  /// Turned off by the user in the app.
+  off,
+
+  /// On in the app, but notifications are blocked in the phone settings.
+  blocked,
+}
 
 /// Push notifications (FCM). The backend sends to this device by its
 /// Firebase Installation ID (FID): FCM's direct-send target, available after
 /// `FirebaseMessaging.register()` (see [FirebaseMessaging.onRegistered]).
 ///
-/// Every method is best effort: push is optional, so failures are only
-/// logged and never block login, logout or the UI.
+/// The user can turn push off in Profil ([setEnabled]); the device is then
+/// removed on the server (`DELETE /api/v1/field/devices`) and not
+/// registered again until turned back on.
+///
+/// Every network call is best effort: push is optional, so failures are
+/// only logged and never block login, logout or the UI.
 class PushService {
   final ApiClient apiClient;
+  final SharedPreferences preferences;
 
-  PushService(this.apiClient);
+  PushService(this.apiClient, this.preferences);
 
   StreamSubscription<String>? _registeredSub;
 
-  bool get _supported =>
+  bool get isSupported =>
       (Platform.isAndroid || Platform.isIOS) && Firebase.apps.isNotEmpty;
+
+  /// The user's choice in Profil (default on).
+  bool get isEnabled => preferences.getBool(PreferenceKeys.pushEnabled) ?? true;
 
   /// This device's FID, or `null` when Firebase is not available.
   Future<String?> deviceFid() async {
-    if (!_supported) return null;
+    if (!isSupported) return null;
     try {
       return await FirebaseInstallations.instance.getId();
     } catch (e) {
@@ -36,15 +61,38 @@ class PushService {
     }
   }
 
+  Future<PushStatus> status() async {
+    if (!isSupported) return PushStatus.unavailable;
+    if (!isEnabled) return PushStatus.off;
+    return await _osAllows() ? PushStatus.on : PushStatus.blocked;
+  }
+
+  /// Turns push on or off for this device and returns the new [status].
+  Future<PushStatus> setEnabled(bool enabled) async {
+    if (!isSupported) return PushStatus.unavailable;
+    await preferences.setBool(PreferenceKeys.pushEnabled, enabled);
+    if (enabled) {
+      await registerDevice();
+    } else {
+      await _unregisterDevice();
+    }
+    return status();
+  }
+
   /// Asks for notification permission (Android 13+ / iOS), registers this
   /// app instance with FCM, then sends the FID to
   /// `POST /api/v1/field/devices`. Call after login and on every app start
-  /// while logged in.
+  /// while logged in. Does nothing while the user has push turned off or
+  /// the OS blocks notifications.
   Future<void> registerDevice() async {
-    if (!_supported) return;
+    if (!isSupported || !isEnabled) return;
     try {
       final messaging = FirebaseMessaging.instance;
-      await messaging.requestPermission();
+      final settings = await messaging.requestPermission();
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        AppLogger.api('Push: notifications blocked in phone settings');
+        return;
+      }
       // FCM reports a new FID here when registration completes or changes.
       _registeredSub ??= messaging.onRegistered.listen(_sendFid);
       await messaging.register();
@@ -57,8 +105,21 @@ class PushService {
     }
   }
 
-  Future<void> _sendFid(String fid) async {
+  Future<bool> _osAllows() async {
     try {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      // notDetermined: not asked yet; registerDevice() will ask.
+      return settings.authorizationStatus != AuthorizationStatus.denied;
+    } catch (e) {
+      AppLogger.api('Push: failed to read permission: $e');
+      return true;
+    }
+  }
+
+  Future<void> _sendFid(String fid) async {
+    if (!isEnabled) return;
+    await _guard('register', () async {
       await apiClient.post(
         ApiEndpoints.fieldDevices,
         body: {
@@ -68,16 +129,34 @@ class PushService {
         },
       );
       AppLogger.api('Push: device registered');
+    });
+  }
+
+  Future<void> _unregisterDevice() async {
+    final fid = await deviceFid();
+    if (fid == null) return;
+    await _guard('unregister', () async {
+      await apiClient.delete(
+        ApiEndpoints.fieldDevices,
+        queryParameters: {'fid': fid},
+      );
+      AppLogger.api('Push: device unregistered');
+    });
+  }
+
+  Future<void> _guard(String action, Future<void> Function() call) async {
+    try {
+      await call();
     } on ServerException catch (e) {
       // The endpoint only exists when the server's notification-push
       // profile is on; on the dev server it is off (404 NOT_FOUND).
       if (e.statusCode == 404) {
         AppLogger.api('Push: disabled on this server');
       } else {
-        AppLogger.api('Push: register failed: $e');
+        AppLogger.api('Push: $action failed: $e');
       }
     } catch (e) {
-      AppLogger.api('Push: register failed: $e');
+      AppLogger.api('Push: $action failed: $e');
     }
   }
 }

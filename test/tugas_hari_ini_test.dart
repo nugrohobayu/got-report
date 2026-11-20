@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:got_report/core/error/exceptions.dart';
 import 'package:got_report/core/error/failures.dart';
+import 'package:got_report/core/location/location_service.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/features/home/presentation/pages/home_page.dart';
 import 'package:got_report/features/kalender_tugas/presentation/bloc/task_calendar_cubit.dart';
@@ -14,6 +15,8 @@ import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/bloc/today_tasks_cubit.dart';
 import 'package:intl/date_symbol_data_local.dart';
+
+import 'helpers/fake_location_service.dart';
 
 /// Item copied from the "Contoh response" of GET /api/v1/field/tasks.
 const _apiItem = {
@@ -220,6 +223,9 @@ void main() {
       MultiRepositoryProvider(
         providers: [
           RepositoryProvider<TaskRepository>.value(value: repo),
+          RepositoryProvider<LocationService>.value(
+            value: FakeLocationService(),
+          ),
           RepositoryProvider<AuthRepository>.value(
             value: _NoopAuthRepository(),
           ),

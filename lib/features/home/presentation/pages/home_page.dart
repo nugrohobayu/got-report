@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:got_report/core/location/location_prompt.dart';
 import 'package:got_report/core/utils/date_formatter.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/core/widgets/error_view.dart';
@@ -34,6 +35,16 @@ class _HomePageState extends State<HomePage> {
   /// Shared by the Beranda greeting and the Profil tab (one `/me` call).
   late final ProfileCubit _profile =
       ProfileCubit(context.read<ProfileRepository>())..load();
+
+  @override
+  void initState() {
+    super.initState();
+    // Ask for location as soon as the worker is in the app (after login
+    // or on app start while logged in).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) askLocationPermissionOnStart(context);
+    });
+  }
 
   @override
   void dispose() {
@@ -247,7 +258,7 @@ class _TodayContent extends StatelessWidget {
                 const _SectionTitle('Tugas terdekat'),
                 const SizedBox(height: 10),
                 if (nearest != null)
-                  NearestTaskCard(task: nearest)
+                  NearestTaskCard(task: nearest, onChanged: cubit.load)
                 else
                   _EmptyNearest(hasTasks: state.tasks.isNotEmpty),
                 const SizedBox(height: 24),
@@ -267,7 +278,7 @@ class _TodayContent extends StatelessWidget {
                   )
                 else
                   for (final t in others) ...[
-                    TaskCard(task: t),
+                    TaskCard(task: t, onChanged: cubit.load),
                     const SizedBox(height: 10),
                   ],
               ],

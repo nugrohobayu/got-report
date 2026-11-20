@@ -7,7 +7,15 @@ class ServerException implements Exception {
   /// Backend error code, e.g. `AUTH_INVALID_CREDENTIALS`, `VALIDATION_ERROR`.
   final String? code;
 
-  const ServerException({required this.message, this.statusCode, this.code});
+  /// `error.details`, e.g. `{radiusM: 150, distanceM: 498}`.
+  final Map<String, dynamic> details;
+
+  const ServerException({
+    required this.message,
+    this.statusCode,
+    this.code,
+    this.details = const {},
+  });
 
   @override
   String toString() => 'ServerException($statusCode, $code): $message';

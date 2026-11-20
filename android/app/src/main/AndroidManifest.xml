@@ -1,5 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- GPS proof of presence while a task is running. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- Location QR scan and evidence photos (camera only, no gallery). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="Got Report"
         android:name="${applicationName}"
