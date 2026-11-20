@@ -94,7 +94,9 @@ flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
-  background_color_ios: "#FFFFFF"
+  background_color_ios: "#13295B"
+  adaptive_icon_background: "#13295B"
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -112,6 +114,7 @@ flutter:
     - assets/images/login/
     - assets/images/home/
     - assets/icon/
+    - assets/images/logo/
     - assets/google_fonts/
 
   # An image asset can refer to one or more resolution-specific "variants", see

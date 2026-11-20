@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
 import 'package:got_report/features/login/presentation/bloc/login_cubit.dart';
 import 'package:got_report/features/login/presentation/widgets/auth_widgets.dart';
 
 /// Login screen based on Figma "Login Version 8" (node 44:5551), adapted to
-/// the brand: app icon as logo, brand blue, no social login / remember me /
+/// the brand: AdaTugas logo, brand blue, no social login / remember me /
 /// sign up.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -142,16 +143,15 @@ class _Headline extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              'assets/icon/app_icon.png',
-              width: 44,
-              height: 44,
-            ),
+          child: SvgPicture.asset(
+            Theme.of(context).brightness == Brightness.dark
+                ? 'assets/images/logo/adatugas_logo_dark.svg'
+                : 'assets/images/logo/adatugas_logo.svg',
+            height: 120,
+            semanticsLabel: 'Ada Tugas',
           ),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 24),
         Text(
           'Masuk ke Akun Anda',
           style: AuthText.title(color: c.textPrimary),

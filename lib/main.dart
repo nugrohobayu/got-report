@@ -216,7 +216,7 @@ class _MyAppState extends State<MyApp> {
         child: BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
             return MaterialApp.router(
-              title: 'Got Report',
+              title: 'Ada Tugas',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.light,
               darkTheme: AppTheme.dark,

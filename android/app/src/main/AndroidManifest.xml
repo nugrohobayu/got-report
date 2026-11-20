@@ -6,7 +6,7 @@
     <!-- Location QR scan and evidence photos (camera only, no gallery). -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <application
-        android:label="Got Report"
+        android:label="Ada Tugas"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
