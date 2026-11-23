@@ -4,11 +4,11 @@ import 'package:got_report/features/tugas_hari_ini/data/models/task_summary_mode
 import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 abstract class TaskRemoteDataSource {
-  /// `GET /api/v1/field/tasks?status=&dueFrom=&dueTo=`, sorted by `dueAt`.
+  /// `GET /api/v1/field/tasks?dueFrom=&dueTo=`, sorted by `dueAt`.
+  /// Every status is returned, including cancelled tasks.
   Future<List<TaskSummary>> getMyTasks({
     required DateTime dueFrom,
     required DateTime dueTo,
-    List<String> statuses,
   });
 }
 
@@ -21,14 +21,14 @@ class TaskRemoteDataSourceImpl implements TaskRemoteDataSource {
   Future<List<TaskSummary>> getMyTasks({
     required DateTime dueFrom,
     required DateTime dueTo,
-    List<String> statuses = TaskStatus.all,
   }) async {
+    // No `status` param: the backend returns every status (confirmed by BE),
+    // so the app filters.
     final data = await apiClient.get(
       ApiEndpoints.fieldTasks,
       queryParameters: {
         'dueFrom': dueFrom.toUtc().toIso8601String(),
         'dueTo': dueTo.toUtc().toIso8601String(),
-        'status': statuses,
       },
     );
     return TaskSummaryModel.listFromJson(data);

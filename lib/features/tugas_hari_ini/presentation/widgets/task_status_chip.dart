@@ -5,7 +5,7 @@ import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.
 /// Label and color of a task status, same color rules as the web:
 /// Belum abu, Berjalan biru, Selesai hijau, Terlambat merah.
 extension TaskStatusView on TaskSummary {
-  bool get isLate => overdue && !isDone;
+  bool get isLate => overdue && !isDone && !isCancelled;
 
   String get statusLabel {
     if (isLate) return 'Terlambat';
@@ -15,6 +15,7 @@ extension TaskStatusView on TaskSummary {
       TaskStatus.menungguTtd => 'Menunggu TTD',
       TaskStatus.perluRevisi => 'Perlu revisi',
       TaskStatus.selesai => 'Selesai',
+      TaskStatus.dibatalkan => 'Dibatalkan',
       _ => status,
     };
   }

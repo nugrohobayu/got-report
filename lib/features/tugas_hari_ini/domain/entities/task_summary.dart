@@ -10,8 +10,12 @@ class TaskStatus {
   static const perluRevisi = 'PERLU_REVISI';
   static const selesai = 'SELESAI';
 
-  /// Every status a field worker can see. The endpoint only returns the
-  /// unfinished ones by default, so pass this to also get `SELESAI`.
+  /// Cancelled by an admin/supervisor. Shown in the list, but there is
+  /// nothing left to do.
+  static const dibatalkan = 'DIBATALKAN';
+
+  /// Statuses the field worker still works on or has finished
+  /// ([isActive] relies on this, so [dibatalkan] is left out).
   static const all = [
     ditugaskan,
     dikerjakan,
@@ -76,6 +80,8 @@ class TaskSummary extends Equatable {
   });
 
   bool get isDone => status == TaskStatus.selesai;
+
+  bool get isCancelled => status == TaskStatus.dibatalkan;
 
   /// Still needs work from the field worker.
   bool get isActive => TaskStatus.all.contains(status) && !isDone;

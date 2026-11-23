@@ -138,6 +138,7 @@ Kode error yang disepakati: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATIO
 - Selalu baca ulang sebelum membuat/mengubah pemanggilan API: isinya diperbarui Rofik dan bisa berubah. Pakai hanya endpoint dengan Status `Sudah`; jika `Belum`, pakai `FakeApi`.
 - Jangan menebak path/field. Jika endpoint yang dibutuhkan tidak ada di tab API, tanyakan ke user (kabari Rofik), jangan mengarang.
 - Sheet hanya dibaca. Jangan menulis ke Sheet kecuali user memintanya.
+- `GET /api/v1/field/tasks` untuk daftar tugas: kirim `dueFrom`/`dueTo` saja, **tanpa parameter `status`** (dikonfirmasi backend). Pengecualian: pelacak GPS (`ping_tracker.dart`) tetap mengirim `status=DIKERJAKAN`.
 
 ## Stack
 - Flutter (Dart, null safety), target Android dulu (demo), iOS jika sempat
@@ -192,6 +193,8 @@ Field tidak dikenal → tampilkan teks "Field tidak didukung" (jangan crash).
 ## Aturan UI
 - Bahasa Indonesia, tombol besar (dipakai di lapangan), satu tombol utama biru per layar.
 - Warna status sama dengan web: Belum abu, Berjalan biru, Selesai hijau, Terlambat merah.
+- Status backend (`/field/tasks`): `DITUGASKAN` (Belum mulai), `DIKERJAKAN`, `MENUNGGU_TTD`, `PERLU_REVISI` (Berjalan), `SELESAI`, `DIBATALKAN`.
+- Tugas `DIBATALKAN` **tetap ditampilkan** di daftar (hari ini, kalender, riwayat): label "Dibatalkan", abu, ikon larangan, tanpa tombol aksi, tidak dihitung terlambat dan tidak dipilih sebagai tugas terdekat. Jangan disaring.
 - Setiap request: loading state, pesan error dari backend apa adanya.
 
 ## Izin (AndroidManifest)

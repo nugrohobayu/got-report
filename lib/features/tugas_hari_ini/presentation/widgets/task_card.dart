@@ -187,6 +187,7 @@ class _StatusBadge extends StatelessWidget {
 
   IconData get _icon {
     if (task.isDone) return Icons.task_alt;
+    if (task.isCancelled) return Icons.block;
     if (task.isLate) return Icons.alarm;
     return switch (task.status) {
       TaskStatus.dikerjakan => Icons.engineering_outlined,
