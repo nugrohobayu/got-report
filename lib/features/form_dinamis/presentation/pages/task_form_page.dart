@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:got_report/core/tracking/ping_tracker.dart';
 import 'package:got_report/core/location/location_service.dart';
 import 'package:got_report/core/theme/app_colors.dart';
 import 'package:got_report/core/widgets/error_view.dart';
+import 'package:got_report/core/widgets/step_bar.dart';
 import 'package:got_report/features/form_dinamis/domain/entities/task_form.dart';
 import 'package:got_report/features/form_dinamis/domain/repositories/task_form_repository.dart';
 import 'package:got_report/features/form_dinamis/presentation/bloc/task_form_cubit.dart';
@@ -119,37 +121,66 @@ class _TaskFormViewState extends State<_TaskFormView> {
       listenWhen: (a, b) => a.status != b.status || a.error != b.error,
       builder: (context, state) {
         final cubit = context.read<TaskFormCubit>();
+        final scheme = Theme.of(context).colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final showStepBar = state.steps.isNotEmpty &&
+            state.status != TaskFormStatus.loading &&
+            state.status != TaskFormStatus.loadFailed &&
+            state.status != TaskFormStatus.finished;
+        final content = switch (state.status) {
+          TaskFormStatus.loading =>
+            const Center(child: CircularProgressIndicator()),
+          TaskFormStatus.loadFailed => ErrorView(
+              message: state.error ?? 'Gagal memuat form.',
+              onRetry: cubit.load,
+            ),
+          TaskFormStatus.awaitingSignature => _StatusView(
+              icon: Icons.draw_outlined,
+              color: AppColors.statusBerjalan,
+              title: 'Menunggu tanda tangan klien',
+              message: state.form?.isLeader ?? false
+                  ? 'Semua langkah sudah dikirim. Minta klien '
+                      'menandatangani untuk menyelesaikan tugas.'
+                  : 'Ketua tim akan meminta tanda tangan klien.',
+            ),
+          TaskFormStatus.finished => _StatusView(
+              icon: Icons.task_alt,
+              color: AppColors.statusSelesai,
+              title: 'Selesai',
+              message: state.doneMessage ?? 'Tugas selesai.',
+            ),
+          TaskFormStatus.ready => _StepView(state: state),
+        };
         return PopScope(
           // Don't leave in the middle of an upload / save.
           canPop: !state.busy,
           child: Scaffold(
+            backgroundColor: scheme.surface,
             appBar: AppBar(
               title: Text(state.form?.task.title ?? 'Form tugas'),
+              // White header, same as "Mulai tugas".
+              backgroundColor: scheme.surface,
+              foregroundColor: scheme.onSurface,
+              iconTheme: IconThemeData(color: scheme.onSurface),
+              titleTextStyle: Theme.of(context)
+                  .appBarTheme
+                  .titleTextStyle
+                  ?.copyWith(color: scheme.onSurface),
+              systemOverlayStyle: isDark
+                  ? SystemUiOverlayStyle.light
+                  : SystemUiOverlayStyle.dark,
             ),
-            body: switch (state.status) {
-              TaskFormStatus.loading =>
-                const Center(child: CircularProgressIndicator()),
-              TaskFormStatus.loadFailed => ErrorView(
-                  message: state.error ?? 'Gagal memuat form.',
-                  onRetry: cubit.load,
-                ),
-              TaskFormStatus.awaitingSignature => _StatusView(
-                  icon: Icons.draw_outlined,
-                  color: AppColors.statusBerjalan,
-                  title: 'Menunggu tanda tangan klien',
-                  message: state.form?.isLeader ?? false
-                      ? 'Semua langkah sudah dikirim. Minta klien '
-                          'menandatangani untuk menyelesaikan tugas.'
-                      : 'Ketua tim akan meminta tanda tangan klien.',
-                ),
-              TaskFormStatus.finished => _StatusView(
-                  icon: Icons.task_alt,
-                  color: AppColors.statusSelesai,
-                  title: 'Selesai',
-                  message: state.doneMessage ?? 'Tugas selesai.',
-                ),
-              TaskFormStatus.ready => _StepView(state: state),
-            },
+            body: showStepBar
+                ? Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                        child: StepBar(steps: _formSteps(state)),
+                      ),
+                      Expanded(child: content),
+                    ],
+                  )
+                : content,
             bottomNavigationBar: switch (state.status) {
               TaskFormStatus.ready => _StepButtons(state: state),
               TaskFormStatus.awaitingSignature
@@ -173,6 +204,45 @@ class _TaskFormViewState extends State<_TaskFormView> {
   }
 }
 
+/// Stepper of the whole job: every template step, then the client
+/// signature (when required). Once finished, the page shows the done
+/// view without the bar.
+List<StepBarItem> _formSteps(TaskFormState state) {
+  final steps = state.steps;
+  final finished = state.status == TaskFormStatus.finished;
+  final awaitingSignature = state.status == TaskFormStatus.awaitingSignature;
+  final formDone = finished || awaitingSignature;
+  final requireSignature = state.form?.requireSignature ?? false;
+
+  return [
+    for (var i = 0; i < steps.length; i++)
+      StepBarItem(
+        label: steps[i].title,
+        phase: formDone
+            ? StepBarPhase.done
+            // Steps are locked in order: only the ones before the current
+            // step count as done. The server's `complete` flag is not used
+            // here; a later step can be complete already (e.g. no required
+            // field, or a revision reopened from step 1).
+            : i == state.stepIndex
+                ? StepBarPhase.active
+                : i < state.stepIndex
+                    ? StepBarPhase.done
+                    : StepBarPhase.pending,
+      ),
+    if (requireSignature)
+      StepBarItem(
+        label: 'TTD klien',
+        icon: Icons.draw_outlined,
+        phase: finished
+            ? StepBarPhase.done
+            : awaitingSignature
+                ? StepBarPhase.active
+                : StepBarPhase.pending,
+      ),
+  ];
+}
+
 class _StepView extends StatelessWidget {
   final TaskFormState state;
 
@@ -182,7 +252,6 @@ class _StepView extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final step = state.step;
-    final total = state.steps.length;
     if (step == null) {
       return const _StatusView(
         icon: Icons.help_outline,
@@ -200,40 +269,17 @@ class _StepView extends StatelessWidget {
 
     return ListView(
       key: PageStorageKey(step.id),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      // The step bar above already shows the step names and progress.
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
-        Text(
-          'Langkah ${state.stepIndex + 1} dari $total',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: scheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: (state.stepIndex + 1) / total,
-            minHeight: 8,
-            color: scheme.primary,
-            backgroundColor: scheme.outline,
-          ),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          step.title,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-        ),
         if (revision) ...[
-          const SizedBox(height: 12),
           _Banner(
             icon: Icons.assignment_return_outlined,
             color: AppColors.orange,
             text: 'Perlu revisi: $note',
           ),
+          const SizedBox(height: 16),
         ],
-        const SizedBox(height: 16),
         for (final f in step.fields) ...[
           FormFieldView(
             key: ValueKey(fieldKey(step.id, f.id)),
@@ -280,6 +326,7 @@ class _StepButtons extends StatelessWidget {
           if (state.stepIndex > 0) ...[
             OutlinedButton(
               onPressed: state.busy ? null : cubit.back,
+              style: _orangeOutlinedStyle,
               child: const Text('Kembali'),
             ),
             const SizedBox(width: 12),
@@ -287,6 +334,7 @@ class _StepButtons extends StatelessWidget {
           Expanded(
             child: FilledButton(
               onPressed: state.canProceed ? cubit.next : null,
+              style: _orangeFilledStyle,
               child: state.saving
                   ? const SizedBox.square(
                       dimension: 22,
@@ -321,12 +369,24 @@ class _BottomButton extends StatelessWidget {
       minimum: const EdgeInsets.fromLTRB(20, 8, 20, 16),
       child: FilledButton.icon(
         onPressed: onPressed,
+        style: _orangeFilledStyle,
         icon: Icon(icon),
         label: Text(label),
       ),
     );
   }
 }
+
+/// Form buttons use the brand orange (theme default is blue).
+final _orangeFilledStyle = FilledButton.styleFrom(
+  backgroundColor: AppColors.orange,
+  foregroundColor: Colors.white,
+);
+
+final _orangeOutlinedStyle = OutlinedButton.styleFrom(
+  foregroundColor: AppColors.orange,
+  side: const BorderSide(color: AppColors.orange),
+);
 
 class _StatusView extends StatelessWidget {
   final IconData icon;
