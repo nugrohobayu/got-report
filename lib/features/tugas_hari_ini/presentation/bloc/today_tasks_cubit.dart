@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:got_report/core/error/failures.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:got_report/features/tugas_hari_ini/domain/entities/today_progress.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
 
 class TodayTasksState extends Equatable {
@@ -20,7 +21,8 @@ class TodayTasksState extends Equatable {
 
   TaskSummary? get nearest => nearestTask(tasks);
 
-  int get doneCount => tasks.where((t) => t.isDone).length;
+  /// Breakdown for "Progres hari ini" (cancelled tasks not counted).
+  TodayProgress get progress => TodayProgress.of(tasks);
 
   @override
   List<Object?> get props => [status, tasks, errorMessage];

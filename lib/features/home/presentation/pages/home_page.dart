@@ -13,6 +13,7 @@ import 'package:got_report/features/profil/presentation/pages/profile_page.dart'
 import 'package:got_report/features/riwayat_penugasan/presentation/pages/task_history_page.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/bloc/today_tasks_cubit.dart';
+import 'package:got_report/features/tugas_hari_ini/presentation/pages/today_progress_page.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/nearest_task_card.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_card.dart';
 
@@ -388,7 +389,8 @@ String timeOfDayGreeting(DateTime now) {
   return 'Selamat malam';
 }
 
-/// Card with "x dari y tugas selesai" and a progress bar.
+/// Card with "x dari y tugas selesai" and a progress bar; tap → the
+/// detailed [TodayProgressPage].
 class _TodayProgress extends StatelessWidget {
   final TodayTasksState state;
 
@@ -397,43 +399,68 @@ class _TodayProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final total = state.tasks.length;
-    final done = state.doneCount;
+    final progress = state.progress;
+    final total = progress.total;
+    final done = progress.done;
+    final radius = BorderRadius.circular(16);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outline),
+    return Material(
+      color: scheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: scheme.outline),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Progres hari ini',
-            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            total == 0
-                ? 'Belum ada tugas hari ini'
-                : '$done dari $total tugas selesai',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-          if (total > 0) ...[
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: LinearProgressIndicator(
-                value: done / total,
-                minHeight: 8,
-                color: scheme.primary,
-                backgroundColor: scheme.outline,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: () => openTodayProgress(context),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Progres hari ini',
+                      style: TextStyle(
+                          fontSize: 13, color: scheme.onSurfaceVariant),
+                    ),
+                  ),
+                  Text(
+                    'Lihat detail',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.primary,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, size: 18, color: scheme.primary),
+                ],
               ),
-            ),
-          ],
-        ],
+              const SizedBox(height: 4),
+              Text(
+                total == 0
+                    ? 'Belum ada tugas hari ini'
+                    : '$done dari $total tugas selesai',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              if (total > 0) ...[
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: done / total,
+                    minHeight: 8,
+                    color: scheme.primary,
+                    backgroundColor: scheme.outline,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

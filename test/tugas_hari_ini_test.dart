@@ -13,7 +13,9 @@ import 'package:got_report/features/profil/domain/repositories/profile_repositor
 import 'package:got_report/features/tugas_hari_ini/data/models/task_summary_model.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:got_report/features/tugas_hari_ini/domain/entities/today_progress.dart';
 import 'package:got_report/features/tugas_hari_ini/presentation/bloc/today_tasks_cubit.dart';
+import 'package:got_report/features/tugas_hari_ini/presentation/pages/today_progress_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'helpers/fake_location_service.dart';
@@ -147,6 +149,32 @@ void main() {
     });
   });
 
+  group('TodayProgress', () {
+    test('groups by status, late wins, cancelled is not counted', () {
+      final d = DateTime(2026, 11, 23, 9);
+      final p = TodayProgress.of([
+        _task('A', TaskStatus.selesai, d, overdue: true),
+        _task('B', TaskStatus.dikerjakan, d),
+        _task('C', TaskStatus.menungguTtd, d, overdue: true),
+        _task('D', TaskStatus.ditugaskan, d),
+        _task('E', TaskStatus.dibatalkan, d, overdue: true),
+      ]);
+      expect(p.count(ProgressGroup.done), 1);
+      expect(p.count(ProgressGroup.running), 1);
+      expect(p.count(ProgressGroup.late), 1);
+      expect(p.count(ProgressGroup.notStarted), 1);
+      expect(p.count(ProgressGroup.cancelled), 1);
+      expect(p.total, 4);
+      expect(p.percent, 25);
+    });
+
+    test('is 0% with no tasks', () {
+      final p = TodayProgress.of(const []);
+      expect(p.total, 0);
+      expect(p.percent, 0);
+    });
+  });
+
   group('TodayTasksCubit', () {
     test('asks for the local day [00:00, next 00:00)', () async {
       final repo = _FakeTaskRepository();
@@ -253,6 +281,16 @@ void main() {
       tester.getTopLeft(find.text('Tugas B')).dy,
       lessThan(tester.getTopLeft(find.text('Tugas A')).dy),
     );
+
+    // The progress card opens the detail page, grouped by status.
+    await tester.tap(find.text('Progres hari ini'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TodayProgressPage), findsOneWidget);
+    expect(find.text('33%'), findsOneWidget);
+    expect(find.text('2 tugas'), findsOneWidget); // Belum mulai: B, C
+    expect(find.text('1 tugas'), findsOneWidget); // Selesai: A
+    await tester.pageBack();
+    await tester.pumpAndSettle();
 
     // The "Kalender tugas" shortcut switches to the Kalender Kerja tab.
     await tester.tap(find.text('Kalender tugas'));
