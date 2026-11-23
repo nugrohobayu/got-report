@@ -364,10 +364,19 @@ class _PhotoInputState extends State<_PhotoInput> {
   /// The photo just taken, shown until the watermarked one is ready.
   Uint8List? _local;
   String? _loadedFileId;
+
+  /// Reading the GPS (fake GPS check) before the camera opens.
+  bool _checkingGps = false;
   Future<Uint8List>? _remote;
 
   Future<void> _take() async {
     final cubit = context.read<TaskFormCubit>();
+    // Reject a fake GPS before opening the camera.
+    setState(() => _checkingGps = true);
+    final ok = await cubit.checkPhotoLocation(widget.step.id, widget.field.id);
+    if (!mounted) return;
+    setState(() => _checkingGps = false);
+    if (!ok) return;
     final jpeg = await captureEvidencePhoto(context, widget.field.label);
     if (jpeg == null || !mounted) return;
     setState(() => _local = jpeg);
@@ -381,6 +390,7 @@ class _PhotoInputState extends State<_PhotoInput> {
     final state = context.watch<TaskFormCubit>().state;
     final media = state.media[key];
     final uploading = state.uploading.contains(key);
+    final busy = uploading || _checkingGps;
 
     final fileId = media?.isReady == true ? media!.fileId : null;
     if (fileId != null && fileId != _loadedFileId) {
@@ -424,18 +434,20 @@ class _PhotoInputState extends State<_PhotoInput> {
               children: [
                 ColoredBox(color: scheme.surfaceContainerHighest),
                 preview,
-                if (uploading)
-                  const ColoredBox(
+                if (busy)
+                  ColoredBox(
                     color: Colors.black45,
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircularProgressIndicator(color: Colors.white),
-                          SizedBox(height: 10),
+                          const CircularProgressIndicator(color: Colors.white),
+                          const SizedBox(height: 10),
                           Text(
-                            'Mengunggah & memberi cap waktu...',
-                            style: TextStyle(color: Colors.white),
+                            uploading
+                                ? 'Mengunggah & memberi cap waktu...'
+                                : 'Memeriksa lokasi GPS...',
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ],
                       ),
@@ -454,7 +466,7 @@ class _PhotoInputState extends State<_PhotoInput> {
         ],
         const SizedBox(height: 10),
         OutlinedButton.icon(
-          onPressed: uploading ? null : _take,
+          onPressed: busy ? null : _take,
           icon: const Icon(Icons.photo_camera),
           label: Text(media == null ? 'Ambil foto' : 'Ambil ulang'),
         ),

@@ -63,6 +63,7 @@ class _FakeRepo implements StartTaskRepository {
 class _FakeLocation implements LocationService {
   LocationAccess accessState = LocationAccess.granted;
   int reads = 0;
+  bool mock = false;
   DateTime readAt;
 
   _FakeLocation({required this.readAt});
@@ -81,7 +82,7 @@ class _FakeLocation implements LocationService {
       latitude: -6.914444,
       longitude: 107.60981,
       accuracyM: 8,
-      mock: false,
+      mock: mock,
       readAt: readAt,
     );
   }
@@ -262,5 +263,42 @@ void main() {
     await c.start();
     expect(repo.sent, isNull);
     await c.close();
+  });
+
+  test('fake GPS (mock location) blocks the start', () async {
+    location.mock = true;
+    final c = cubit();
+    await c.load();
+    expect(c.state.mockDetected, isTrue);
+    expect(c.state.canStart, isFalse);
+    expect(c.state.error, mockLocationMessage);
+
+    await c.start(qrCode: 'q');
+    expect(repo.sent, isNull);
+
+    // Fake GPS turned off: checking again allows the start.
+    location.mock = false;
+    await c.locate();
+    expect(c.state.error, isNull);
+    expect(c.state.canStart, isTrue);
+    await c.start(qrCode: 'q');
+    expect(repo.sent!.mock, isFalse);
+    expect(c.state.status, StartTaskStatus.started);
+    await c.close();
+  });
+
+  test('ensureRealLocation rejects a mock fix', () {
+    DeviceLocation fix({required bool mock}) => DeviceLocation(
+          latitude: 0,
+          longitude: 0,
+          accuracyM: 5,
+          mock: mock,
+          readAt: now,
+        );
+    expect(() => ensureRealLocation(fix(mock: false)), returnsNormally);
+    expect(
+      () => ensureRealLocation(fix(mock: true)),
+      throwsA(isA<LocationUnavailable>()),
+    );
   });
 }

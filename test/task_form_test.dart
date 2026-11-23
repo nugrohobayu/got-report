@@ -183,6 +183,7 @@ class _FakeRepo implements TaskFormRepository {
 }
 
 class _Gps implements LocationService {
+  bool mock = false;
   @override
   Future<LocationAccess> access() async => LocationAccess.granted;
   @override
@@ -192,7 +193,7 @@ class _Gps implements LocationService {
         latitude: -6.914744,
         longitude: 107.60981,
         accuracyM: 7,
-        mock: false,
+        mock: mock,
         readAt: DateTime.now(),
       );
   @override
@@ -203,15 +204,40 @@ class _Gps implements LocationService {
 
 void main() {
   late _FakeRepo repo;
+  late _Gps gps;
 
   TaskFormCubit cubit() => TaskFormCubit(
         repository: repo,
-        locationService: _Gps(),
+        locationService: gps,
         taskId: 'task-1',
         mediaPollInterval: Duration.zero,
       );
 
-  setUp(() => repo = _FakeRepo(TaskFormModel.formFromJson(_detail())));
+  setUp(() {
+    repo = _FakeRepo(TaskFormModel.formFromJson(_detail()));
+    gps = _Gps();
+  });
+
+  test('fake GPS: camera check and photo upload are rejected', () async {
+    gps.mock = true;
+    final c = cubit();
+    await c.load();
+
+    expect(await c.checkPhotoLocation('s1', 'f1'), isFalse);
+    expect(c.state.fieldErrors['s1.f1'], mockLocationMessage);
+
+    await c.uploadPhoto('s1', 'f1', Uint8List(4));
+    expect(c.state.media['s1.f1'], isNull);
+    expect(c.state.fieldErrors['s1.f1'], mockLocationMessage);
+
+    // Fake GPS off: the next check reads the GPS again and passes.
+    gps.mock = false;
+    expect(await c.checkPhotoLocation('s1', 'f1'), isTrue);
+    expect(c.state.fieldErrors['s1.f1'], isNull);
+    await c.uploadPhoto('s1', 'f1', Uint8List(4));
+    expect(c.state.media['s1.f1']!.isReady, isTrue);
+    await c.close();
+  });
 
   test('parses the template schema from the API example', () {
     final form = TaskFormModel.formFromJson(_detail());

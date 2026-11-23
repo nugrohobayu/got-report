@@ -260,7 +260,7 @@ class TaskFormCubit extends Cubit<TaskFormState> {
       clearError: true,
     ));
     try {
-      final evidence = await _evidence();
+      final evidence = await _evidence(rejectMock: true);
       var media = await repository.uploadPhoto(
         taskId,
         stepId: stepId,
@@ -463,10 +463,34 @@ class TaskFormCubit extends Cubit<TaskFormState> {
     }
   }
 
-  Future<GpsEvidence> _evidence() async {
+  /// Checks the GPS before the camera opens, so no photo is taken for
+  /// nothing when the location is fake (fake GPS) or unavailable. Returns
+  /// `false` and shows the reason on the field.
+  Future<bool> checkPhotoLocation(String stepId, String fieldId) async {
+    final key = fieldKey(stepId, fieldId);
+    emit(state.copyWith(
+      fieldErrors: Map.of(state.fieldErrors)..remove(key),
+    ));
+    try {
+      await _evidence(rejectMock: true);
+      return true;
+    } on LocationUnavailable catch (e) {
+      _fieldError(key, e.message);
+      return false;
+    }
+  }
+
+  /// GPS evidence from a fix at most [maxFixAge] old. With [rejectMock] a
+  /// fix from a fake GPS app throws [LocationUnavailable] and is not
+  /// cached, so the next try reads the GPS again.
+  Future<GpsEvidence> _evidence({bool rejectMock = false}) async {
     var fix = _fix;
     if (fix == null || _now().difference(fix.readAt) > maxFixAge) {
       fix = _fix = await locationService.current();
+    }
+    if (rejectMock && fix.mock) {
+      _fix = null;
+      ensureRealLocation(fix);
     }
     return GpsEvidence(
       latitude: fix.latitude,

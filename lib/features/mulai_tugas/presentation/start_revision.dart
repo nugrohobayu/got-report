@@ -56,6 +56,7 @@ Future<void> startRevision(
 
   final ok = await _withProgress(context, () async {
     final fix = await location.current();
+    ensureRealLocation(fix); // reject fake GPS before sending evidence
     await repository.start(
       taskId,
       StartEvidence(

@@ -47,7 +47,14 @@ class StartTaskState extends Equatable {
   /// can be started; other statuses get 409 TASK_INVALID_TRANSITION.
   bool get isStartable => startableStatuses.contains(info?.task.status);
 
-  bool get canStart => isStartable && access == LocationAccess.granted && !busy;
+  /// The last fix came from a mock location (fake GPS) app.
+  bool get mockDetected => location?.mock ?? false;
+
+  bool get canStart =>
+      isStartable &&
+      access == LocationAccess.granted &&
+      !mockDetected &&
+      !busy;
 
   /// Scan the location QR before starting when the template requires it,
   /// for the first start and for a revision (PERLU_REVISI) alike.
@@ -165,6 +172,14 @@ class StartTaskCubit extends Cubit<StartTaskState> {
       }
     }
     final location = state.location!;
+    // Never send evidence from a fake GPS app.
+    if (location.mock) {
+      emit(state.copyWith(
+        status: StartTaskStatus.ready,
+        error: mockLocationMessage,
+      ));
+      return;
+    }
     try {
       final task = await repository.start(
         taskId,
@@ -195,8 +210,12 @@ class StartTaskCubit extends Cubit<StartTaskState> {
     try {
       final fix = await locationService.current();
       if (isClosed) return false;
-      emit(state.copyWith(location: fix));
-      return true;
+      // Keep the fix so the card can show it, but reject a fake GPS.
+      emit(state.copyWith(
+        location: fix,
+        error: fix.mock ? mockLocationMessage : null,
+      ));
+      return !fix.mock;
     } on LocationUnavailable catch (e) {
       if (isClosed) return false;
       emit(state.copyWith(access: e.access, error: e.message));

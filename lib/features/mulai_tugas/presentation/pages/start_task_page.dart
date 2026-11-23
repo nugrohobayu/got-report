@@ -391,6 +391,17 @@ class _GpsCard extends StatelessWidget {
         action: 'Coba lagi',
         onPressed: cubit.locate,
       );
+    } else if (fix.mock) {
+      content = _CardAction(
+        icon: Icons.gpp_bad_outlined,
+        text: 'Lokasi palsu (fake GPS) terdeteksi. Tugas tidak bisa '
+            'dimulai.',
+        action: state.status == StartTaskStatus.locating
+            ? 'Memeriksa...'
+            : 'Periksa lagi',
+        onPressed: state.busy ? null : cubit.locate,
+        isError: true,
+      );
     } else {
       final inside =
           distance != null && radius != null ? distance <= radius : null;
@@ -496,7 +507,7 @@ class _CardAction extends StatelessWidget {
   final IconData icon;
   final String text;
   final String action;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isError;
 
   const _CardAction({

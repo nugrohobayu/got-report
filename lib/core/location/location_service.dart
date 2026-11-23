@@ -38,6 +38,17 @@ class DeviceLocation extends Equatable {
   List<Object?> get props => [latitude, longitude, accuracyM, mock, readAt];
 }
 
+/// Shown when the fix comes from a mock location (fake GPS) app.
+const mockLocationMessage =
+    'Terdeteksi lokasi palsu (fake GPS). Matikan aplikasi lokasi palsu '
+    'dan opsi "Aplikasi lokasi palsu" di Opsi pengembang, lalu coba lagi.';
+
+/// Throws [LocationUnavailable] when [fix] comes from a mock location app,
+/// so evidence is never sent with a fake position.
+void ensureRealLocation(DeviceLocation fix) {
+  if (fix.mock) throw const LocationUnavailable(mockLocationMessage);
+}
+
 /// Thrown by [LocationService.current] when no fix could be read.
 class LocationUnavailable implements Exception {
   final LocationAccess? access;
