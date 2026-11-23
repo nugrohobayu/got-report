@@ -29,13 +29,25 @@ String? taskIdFromPushRoute(String? route) =>
 class PushNotifications {
   PushNotifications._();
 
+  /// Notification sound saying "Ada tugas" (`res/raw/ada_tugas.wav`).
+  static const _sound = RawResourceAndroidNotificationSound('ada_tugas');
+
   /// Must match `default_notification_channel_id` in AndroidManifest.xml.
+  ///
+  /// Android fixes a channel's sound when it is created, so changing the
+  /// sound needs a new channel id (and deleting the old one in
+  /// [_oldChannelIds]).
   static const channel = AndroidNotificationChannel(
-    'tugas',
+    'tugas_suara',
     'Tugas',
     description: 'Tugas baru, permintaan revisi, dan tugas terlambat',
     importance: Importance.high,
+    playSound: true,
+    sound: _sound,
   );
+
+  /// Channels from earlier versions, removed so Settings shows only one.
+  static const _oldChannelIds = ['tugas'];
 
   static final _local = FlutterLocalNotificationsPlugin();
 
@@ -79,10 +91,12 @@ class PushNotifications {
       onDidReceiveNotificationResponse:
           onOpened == null ? null : (response) => onOpened(response.payload),
     );
-    await _local
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+    final android = _local.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    for (final id in _oldChannelIds) {
+      await android?.deleteNotificationChannel(id);
+    }
+    await android?.createNotificationChannel(channel);
   }
 
   /// The user's Notifikasi switch in Profil.
@@ -123,6 +137,8 @@ class PushNotifications {
           channelDescription: channel.description,
           importance: Importance.high,
           priority: Priority.high,
+          playSound: true,
+          sound: _sound,
         ),
       ),
       payload: _routeOf(message.data),

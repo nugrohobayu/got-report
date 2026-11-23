@@ -38,10 +38,11 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <!-- FCM pushes shown while the app is in the background use the
-             "tugas" channel (created in PushNotifications). -->
+             "tugas_suara" channel (created in PushNotifications), which plays
+             res/raw/ada_tugas.wav. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="tugas" />
+            android:value="tugas_suara" />
         <!-- FCM sends to this app by its Firebase Installation ID (FID); the
              backend stores the FID. Needed by FirebaseMessaging.register(). -->
         <meta-data

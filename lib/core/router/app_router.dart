@@ -22,11 +22,34 @@ class AppRouter {
   /// Routes are guarded by [session]: logged-out users always land on
   /// `/login`, users who must change their password are kept on
   /// `/change-password`, and fully logged-in users never see either.
-  static GoRouter create(SessionCubit session) => GoRouter(
+  ///
+  /// [onPushRoute] opens a push route (`/tasks/<id>`). Android may hand that
+  /// route to the router as a deep link when a notification launches the
+  /// app; it is not a screen of its own, so it goes to Beranda and the task
+  /// is opened from there.
+  static GoRouter create(
+    SessionCubit session, {
+    void Function(String route)? onPushRoute,
+  }) =>
+      GoRouter(
         initialLocation: _startFor(session),
         refreshListenable: _StreamListenable(session.stream),
         observers: [_LoggingNavigatorObserver()],
+        // Unknown location (old link, bad push route): go to the start
+        // screen instead of showing a route error.
+        onException: (context, state, router) {
+          AppLogger.routing('No route for ${state.uri}, going home');
+          router.go(_startFor(session));
+        },
         routes: [
+          GoRoute(
+            path: '/tasks/:id',
+            name: 'taskPushLink',
+            redirect: (context, state) {
+              onPushRoute?.call(state.uri.path);
+              return '/';
+            },
+          ),
           GoRoute(
             path: _login,
             name: 'login',

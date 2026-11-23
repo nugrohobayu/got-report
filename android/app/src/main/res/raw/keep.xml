@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only referenced by name from Dart (notification channel sound), so keep
+     it from being removed by resource shrinking in release builds. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/ada_tugas" />

@@ -102,7 +102,10 @@ class _MyAppState extends State<MyApp> {
       onSessionExpired: widget.sessionCubit.setUnauthenticated,
     ),
   );
-  late final GoRouter _router = AppRouter.create(widget.sessionCubit);
+  late final GoRouter _router = AppRouter.create(
+    widget.sessionCubit,
+    onPushRoute: _openPushRoute,
+  );
   late final PushService _push =
       PushService(_apiClient, widget.sharedPreferences);
   late final PingTracker _pings = PingTracker(
@@ -111,6 +114,8 @@ class _MyAppState extends State<MyApp> {
   );
   final LocationService _locationService = const GeolocatorLocationService();
   late final StreamSubscription<SessionStatus> _sessionSub;
+  String? _lastPushRoute;
+  DateTime _lastPushAt = DateTime(0);
 
   @override
   void initState() {
@@ -145,12 +150,25 @@ class _MyAppState extends State<MyApp> {
   /// follows. Logged out, the router sends the user to login instead.
   void _openPushRoute(String? route) {
     AppLogger.routing('Push opened: $route');
+    // A cold start can report the same tap twice (deep link + FCM initial
+    // message): open it once.
+    final now = DateTime.now();
+    if (route != null &&
+        route == _lastPushRoute &&
+        now.difference(_lastPushAt) < const Duration(seconds: 3)) {
+      return;
+    }
+    _lastPushRoute = route;
+    _lastPushAt = now;
     // May be called from initState (app launched by the tap): wait until
     // the router is built.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _router.go('/');
       final taskId = taskIdFromPushRoute(route);
       if (taskId == null || !widget.sessionCubit.isAuthenticated) return;
+      // Cold start: the router may not have settled on Beranda yet. Pushing
+      // now would push onto an empty / stale stack and show a route error.
+      if (!await _waitForHome()) return;
       final params = {'id': taskId};
       final started = await _router.pushNamed<bool>(
         startTaskRouteName,
@@ -160,6 +178,32 @@ class _MyAppState extends State<MyApp> {
         _router.pushNamed(taskFormRouteName, pathParameters: params);
       }
     });
+  }
+
+  /// Completes with `true` once the router shows Beranda (`/`), `false` if
+  /// it does not within a few seconds (e.g. redirected to login).
+  Future<bool> _waitForHome() async {
+    final delegate = _router.routerDelegate;
+    bool atHome() {
+      final config = delegate.currentConfiguration;
+      return config.isNotEmpty && !config.isError && config.uri.path == '/';
+    }
+
+    if (atHome()) return true;
+    final done = Completer<bool>();
+    void listener() {
+      if (atHome() && !done.isCompleted) done.complete(true);
+    }
+
+    delegate.addListener(listener);
+    try {
+      return await done.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => false,
+      );
+    } finally {
+      delegate.removeListener(listener);
+    }
   }
 
   @override
