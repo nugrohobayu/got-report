@@ -30,6 +30,11 @@ class TaskFormState extends Equatable {
   /// Current answer values, `stepId.fieldId` → value.
   final Map<String, dynamic> answers;
 
+  /// Answer values as stored on the server, `stepId.fieldId` → value. A
+  /// complete step whose answers still match is not saved again (in team
+  /// mode the step may be locked by the member who filled it).
+  final Map<String, dynamic> savedAnswers;
+
   /// Photos, `stepId.fieldId` → media.
   final Map<String, MediaInfo> media;
 
@@ -55,6 +60,7 @@ class TaskFormState extends Equatable {
     this.taskStatus = '',
     this.stepIndex = 0,
     this.answers = const {},
+    this.savedAnswers = const {},
     this.media = const {},
     this.uploading = const {},
     this.completeSteps = const {},
@@ -103,6 +109,7 @@ class TaskFormState extends Equatable {
     String? taskStatus,
     int? stepIndex,
     Map<String, dynamic>? answers,
+    Map<String, dynamic>? savedAnswers,
     Map<String, MediaInfo>? media,
     Set<String>? uploading,
     Set<String>? completeSteps,
@@ -118,6 +125,7 @@ class TaskFormState extends Equatable {
       taskStatus: taskStatus ?? this.taskStatus,
       stepIndex: stepIndex ?? this.stepIndex,
       answers: answers ?? this.answers,
+      savedAnswers: savedAnswers ?? this.savedAnswers,
       media: media ?? this.media,
       uploading: uploading ?? this.uploading,
       completeSteps: completeSteps ?? this.completeSteps,
@@ -135,6 +143,7 @@ class TaskFormState extends Equatable {
         taskStatus,
         stepIndex,
         answers,
+        savedAnswers,
         media,
         uploading,
         completeSteps,
@@ -147,6 +156,18 @@ class TaskFormState extends Equatable {
 
 bool _isEmpty(dynamic v) =>
     v == null || (v is String && v.trim().isEmpty) || (v is List && v.isEmpty);
+
+/// Equality of normalized answer values (lists compared item by item).
+bool _sameValue(dynamic a, dynamic b) {
+  if (a is List && b is List) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+  return a == b;
+}
 
 /// Dynamic form of a started task: steps in order, answers saved per step,
 /// camera photos watermarked by the server, then submit and the client's
@@ -225,6 +246,7 @@ class TaskFormCubit extends Cubit<TaskFormState> {
       taskStatus: taskStatus,
       stepIndex: index,
       answers: answers,
+      savedAnswers: answers,
       media: media,
       completeSteps: complete,
       doneMessage:
@@ -299,11 +321,19 @@ class TaskFormCubit extends Cubit<TaskFormState> {
     emit(state.copyWith(saving: true, clearError: true));
     try {
       final answerFields = step.fields.where((f) => f.isAnswer).toList();
-      if (answerFields.isNotEmpty) {
-        final sent = {
-          for (final f in answerFields)
-            f.id: _normalize(f, state.answers[fieldKey(step.id, f.id)]),
-        };
+      final sent = {
+        for (final f in answerFields)
+          f.id: _normalize(f, state.answers[fieldKey(step.id, f.id)]),
+      };
+      // A complete step left unchanged is not saved again: in team mode it
+      // may be locked by the member who filled it (409 TASK_STEP_LOCKED),
+      // which would keep the leader from submitting.
+      final unchanged = state.completeSteps.contains(step.id) &&
+          answerFields.every((f) => _sameValue(
+                sent[f.id],
+                _normalize(f, state.savedAnswers[fieldKey(step.id, f.id)]),
+              ));
+      if (answerFields.isNotEmpty && !unchanged) {
         final saved = await repository.saveAnswers(
           taskId,
           step.id,
@@ -312,6 +342,10 @@ class TaskFormCubit extends Cubit<TaskFormState> {
         );
         if (isClosed) return;
         _applyStep(saved);
+        emit(state.copyWith(savedAnswers: {
+          ...state.savedAnswers,
+          for (final e in sent.entries) fieldKey(step.id, e.key): e.value,
+        }));
       }
       if (!state.isLastStep) {
         emit(state.copyWith(stepIndex: state.stepIndex + 1, saving: false));
@@ -333,8 +367,10 @@ class TaskFormCubit extends Cubit<TaskFormState> {
       emit(state.copyWith(
         saving: false,
         status: TaskFormStatus.finished,
-        doneMessage: 'Bagian Anda tersimpan. Ketua tim akan mengirim hasil '
-            'dan meminta tanda tangan klien.',
+        doneMessage: form.requireSignature
+            ? 'Bagian Anda tersimpan. Ketua tim akan mengirim hasil '
+                'dan meminta tanda tangan klien.'
+            : 'Bagian Anda tersimpan. Ketua tim akan mengirim hasil.',
       ));
       return;
     }
@@ -440,14 +476,18 @@ class TaskFormCubit extends Cubit<TaskFormState> {
   }
 
   String _message(Failure f) {
+    // The backend's error.message as is (it follows Accept-Language). For
+    // codes whose details this screen shows itself (per field, or the
+    // member's name) keep only the message, without the appended details.
     if (f is ServerFailure) {
+      final base = f.message.split('\n').first;
       switch (f.code) {
         case 'TASK_STEP_LOCKED':
-          return 'Langkah ini sedang dikerjakan anggota tim lain.';
-        case 'TASK_LEADER_ONLY':
-          return 'Hanya ketua tim yang dapat mengirim hasil.';
+          final name = state.form?.team[f.details['lockedBy']?.toString()];
+          return name == null || name.isEmpty ? base : '$base ($name)';
         case 'VALIDATION_ERROR':
-          return 'Periksa kembali isian yang ditandai.';
+        case 'TASK_INCOMPLETE':
+          return base;
       }
     }
     return f.message;

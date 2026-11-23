@@ -28,6 +28,8 @@ class ApiClient {
                 headers: {
                   'X-App-Platform': Platform.isIOS ? 'ios' : 'android',
                   'X-App-Version': AppConstants.appVersion,
+                  // Backend error.message follows this (UI is Indonesian).
+                  'Accept-Language': 'id',
                 },
               ),
             ) {

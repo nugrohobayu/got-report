@@ -37,7 +37,15 @@ class LoggingInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    _logFinally(err.requestOptions, error: err.message ?? err.toString());
+    // With a response (4xx/5xx) log its code and body, which carries
+    // error.code / error.details (e.g. 409 TASK_STEP_LOCKED vs TASK_INCOMPLETE).
+    final response = err.response;
+    _logFinally(
+      err.requestOptions,
+      error: err.message ?? err.toString(),
+      responseCode: response?.statusCode,
+      responseBody: response?.data,
+    );
     handler.next(err);
   }
 
@@ -63,6 +71,15 @@ class LoggingInterceptor extends Interceptor {
       buffer
         ..writeln('[Error] : ')
         ..writeln('\t$error');
+      if (responseCode != null) {
+        buffer
+          ..writeln('[Response Code] : ')
+          ..writeln('\t$responseCode')
+          ..writeln('[Response Body Raw] : ')
+          ..writeln(
+            '\t${_truncate(_redact(responseBody)?.toString() ?? '')}',
+          );
+      }
     } else {
       buffer
         ..writeln('[Response Code] : ')

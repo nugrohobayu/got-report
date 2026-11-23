@@ -373,6 +373,35 @@ void main() {
     await c.close();
   });
 
+  test('member of a template without signature: no signature mentioned',
+      () async {
+    final json = _detail(myRole: 'MEMBER');
+    final template = Map<String, dynamic>.from(json['template'] as Map);
+    final schema = Map<String, dynamic>.from(template['schema'] as Map);
+    schema['steps'] = (schema['steps'] as List).take(3).toList();
+    template['schema'] = schema;
+    template['requireSignature'] = false;
+    repo =
+        _FakeRepo(TaskFormModel.formFromJson({...json, 'template': template}));
+    expect(repo.form.requireSignature, isFalse);
+
+    final c = cubit();
+    await c.load();
+    await _fillAll(c); // s3 is the last step here: it finishes
+    expect(c.state.status, TaskFormStatus.finished);
+    expect(repo.submits, 0);
+    expect(c.state.doneMessage, isNot(contains('tanda tangan')));
+    await c.close();
+  });
+
+  test('a signature field in the schema means a signature is required', () {
+    final json = _detail();
+    final template = Map<String, dynamic>.from(json['template'] as Map)
+      ..remove('requireSignature');
+    final form = TaskFormModel.formFromJson({...json, 'template': template});
+    expect(form.requireSignature, isTrue);
+  });
+
   test('VALIDATION_ERROR details mark the right field', () async {
     final c = cubit();
     await c.load();
@@ -426,6 +455,88 @@ void main() {
     expect(c.state.stepIndex, 2);
     await c.load(fromFirstStep: true);
     expect(c.state.stepIndex, 0);
+    await c.close();
+  });
+
+  test('leader resumes a task filled by a member: submits without resaving',
+      () async {
+    repo.submission = TaskFormModel.submissionFromJson({
+      'status': 'DIKERJAKAN',
+      'steps': [
+        for (final id in ['s1', 's2'])
+          {'stepId': id, 'complete': true, 'lockedBy': 'member-b'},
+        {
+          'stepId': 's3',
+          'complete': true,
+          'lockedBy': 'member-b',
+          'fields': [
+            {
+              'fieldId': 'f4',
+              'answer': {'value': 'Berhasil'},
+            },
+            {
+              'fieldId': 'f5',
+              'answer': {'value': 12},
+            },
+          ],
+        },
+      ],
+    });
+    // The server rejects any save on the member's steps.
+    repo.saveError = const ServerFailure(
+      'Langkah sedang dikerjakan anggota lain',
+      code: 'TASK_STEP_LOCKED',
+      details: {'lockedBy': 'member-b'},
+    );
+    final c = cubit();
+    await c.load();
+    expect(c.state.stepIndex, 3);
+
+    // Back to the member's step and on again: unchanged, so not saved.
+    c.back();
+    await c.next();
+    expect(c.state.error, isNull);
+    expect(c.state.stepIndex, 3);
+
+    await c.next();
+    expect(repo.submits, 1);
+    expect(c.state.status, TaskFormStatus.awaitingSignature);
+    await c.close();
+  });
+
+  test('changing a step locked by a member names that member', () async {
+    repo = _FakeRepo(TaskFormModel.formFromJson({
+      ..._detail(),
+      'team': [
+        {'staffId': 'leader-a', 'fullName': 'Teknisi A', 'role': 'LEADER'},
+        {'staffId': 'member-b', 'fullName': 'Teknisi B', 'role': 'MEMBER'},
+      ],
+    }));
+    repo.submission = const Submission(status: 'DIKERJAKAN', steps: [
+      StepSnapshot(stepId: 's1', complete: true),
+      StepSnapshot(stepId: 's2', complete: true),
+      StepSnapshot(
+        stepId: 's3',
+        complete: true,
+        lockedBy: 'member-b',
+        answers: {'f4': 'Berhasil'},
+      ),
+    ]);
+    repo.saveError = const ServerFailure(
+      'Langkah sedang dikerjakan anggota lain',
+      code: 'TASK_STEP_LOCKED',
+      details: {'lockedBy': 'member-b'},
+    );
+    final c = cubit();
+    await c.load();
+    c.back();
+    c.setAnswer('s3', 'f4', 'Gagal');
+    await c.next();
+    expect(c.state.stepIndex, 2);
+    expect(
+      c.state.error,
+      'Langkah sedang dikerjakan anggota lain (Teknisi B)',
+    );
     await c.close();
   });
 

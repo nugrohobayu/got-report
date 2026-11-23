@@ -78,18 +78,22 @@ class TaskForm extends Equatable {
   final bool requireSignature;
   final List<FormStepDef> steps;
 
+  /// Team mode: staffId → full name (to name who holds a step lock).
+  final Map<String, String> team;
+
   const TaskForm({
     required this.task,
     required this.lockOrder,
     required this.requireSignature,
     required this.steps,
+    this.team = const {},
   });
 
   /// Only the leader submits and asks for the client's signature.
   bool get isLeader => task.myRole == null || task.myRole == 'LEADER';
 
   @override
-  List<Object?> get props => [task, lockOrder, requireSignature, steps];
+  List<Object?> get props => [task, lockOrder, requireSignature, steps, team];
 }
 
 /// Key of a field across steps: `stepId.fieldId` (as in TASK_INCOMPLETE).

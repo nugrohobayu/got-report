@@ -12,12 +12,27 @@ class TaskFormModel {
     final template = json['template'];
     final schema = template is Map ? template['schema'] : null;
     final steps = schema is Map ? schema['steps'] : null;
+    final team = json['team'];
+    final stepDefs = steps is List
+        ? steps.whereType<Map>().map(_step).toList()
+        : const <FormStepDef>[];
     return TaskForm(
+      team: {
+        if (team is List)
+          for (final m in team.whereType<Map>())
+            if (m['staffId'] != null)
+              m['staffId'].toString(): m['fullName']?.toString() ?? '',
+      },
       task: TaskSummaryModel.fromJson(json),
       lockOrder: schema is Map && schema['lockOrder'] == true,
-      requireSignature: template is Map && template['requireSignature'] == true,
-      steps:
-          steps is List ? steps.whereType<Map>().map(_step).toList() : const [],
+      // The backend derives requireSignature from a signature field in the
+      // schema; follow both so a missing flag cannot disagree with the form.
+      requireSignature:
+          (template is Map && template['requireSignature'] == true) ||
+              stepDefs.any(
+                (s) => s.fields.any((f) => f.type == FieldType.signature),
+              ),
+      steps: stepDefs,
     );
   }
 
