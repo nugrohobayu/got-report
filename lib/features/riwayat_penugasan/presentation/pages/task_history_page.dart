@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:got_report/core/utils/date_formatter.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/core/widgets/error_view.dart';
+import 'package:got_report/core/widgets/reload_listener.dart';
 import 'package:got_report/features/riwayat_penugasan/presentation/bloc/task_history_cubit.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
@@ -11,14 +12,22 @@ import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_car
 /// Riwayat Penugasan tab: search box and deadline date-range filter on top,
 /// tasks grouped by deadline date below, newest first.
 class TaskHistoryPage extends StatelessWidget {
-  const TaskHistoryPage({super.key});
+  /// Reloads with the current filter each time it notifies (tab opened
+  /// again).
+  final Listenable? reloadSignal;
+
+  const TaskHistoryPage({super.key, this.reloadSignal});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
           TaskHistoryCubit(context.read<TaskRepository>())..load(),
-      child: const _TaskHistoryView(),
+      child: ReloadListener(
+        signal: reloadSignal,
+        onReload: (context) => context.read<TaskHistoryCubit>().load(),
+        child: const _TaskHistoryView(),
+      ),
     );
   }
 }

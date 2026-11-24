@@ -5,6 +5,7 @@ import 'package:got_report/core/location/location_prompt.dart';
 import 'package:got_report/core/utils/date_formatter.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/core/widgets/error_view.dart';
+import 'package:got_report/core/widgets/reload_listener.dart';
 import 'package:got_report/features/kalender_tugas/presentation/pages/task_calendar_page.dart';
 import 'package:got_report/features/login/presentation/widgets/auth_widgets.dart';
 import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
@@ -34,6 +35,10 @@ class _HomePageState extends State<HomePage> {
   /// kept alive by the [IndexedStack].
   final Set<int> _opened = {0};
 
+  /// One per tab; notified when an already-built tab is opened again so it
+  /// reloads its data (the first open loads by itself).
+  final List<_ReloadSignal> _reloads = List.generate(4, (_) => _ReloadSignal());
+
   /// Shared by the Beranda greeting and the Profil tab (one `/me` call).
   late final ProfileCubit _profile =
       ProfileCubit(context.read<ProfileRepository>())..load();
@@ -51,6 +56,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _profile.close();
+    for (final r in _reloads) {
+      r.dispose();
+    }
     super.dispose();
   }
 
@@ -113,10 +121,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _select(int index) => setState(() {
-        _navIndex = index;
-        _opened.add(index);
-      });
+  void _select(int index) {
+    if (_opened.contains(index)) _reloads[index].fire();
+    setState(() {
+      _navIndex = index;
+      _opened.add(index);
+    });
+  }
 
   late final List<_Tab> _tabs = [
     _Tab(
@@ -126,6 +137,7 @@ class _HomePageState extends State<HomePage> {
       icon: Icons.home_outlined,
       selectedIcon: Icons.home,
       builder: () => _BerandaTab(
+        reloadSignal: _reloads[0],
         onOpenCalendar: () => _select(1),
         onOpenProfile: () => _select(3),
       ),
@@ -135,14 +147,14 @@ class _HomePageState extends State<HomePage> {
       title: 'Kalender Kerja',
       icon: Icons.calendar_month_outlined,
       selectedIcon: Icons.calendar_month,
-      builder: () => const TaskCalendarPage(),
+      builder: () => TaskCalendarPage(reloadSignal: _reloads[1]),
     ),
     _Tab(
       label: 'Riwayat',
       title: 'Riwayat Penugasan',
       icon: Icons.history,
       selectedIcon: Icons.history,
-      builder: () => const TaskHistoryPage(),
+      builder: () => TaskHistoryPage(reloadSignal: _reloads[2]),
     ),
     _Tab(
       label: 'Profil',
@@ -150,9 +162,17 @@ class _HomePageState extends State<HomePage> {
       title: null,
       icon: Icons.person_outline,
       selectedIcon: Icons.person,
-      builder: () => const ProfilePage(),
+      builder: () => ReloadListener(
+        signal: _reloads[3],
+        onReload: (_) => _profile.load(),
+        child: const ProfilePage(),
+      ),
     ),
   ];
+}
+
+class _ReloadSignal extends ChangeNotifier {
+  void fire() => notifyListeners();
 }
 
 class _Tab {
@@ -198,11 +218,15 @@ class _TopBar extends StatelessWidget {
 /// Beranda: greeting, today's progress, the nearest task to do, a shortcut
 /// to the task calendar, and the rest of today's tasks.
 class _BerandaTab extends StatelessWidget {
+  /// Reloads today's tasks each time it notifies (tab opened again).
+  final Listenable reloadSignal;
+
   /// Switch to the Kalender / Profil tab.
   final VoidCallback onOpenCalendar;
   final VoidCallback onOpenProfile;
 
   const _BerandaTab({
+    required this.reloadSignal,
     required this.onOpenCalendar,
     required this.onOpenProfile,
   });
@@ -212,9 +236,13 @@ class _BerandaTab extends StatelessWidget {
     return BlocProvider(
       create: (context) =>
           TodayTasksCubit(context.read<TaskRepository>())..load(),
-      child: _TodayContent(
-        onOpenCalendar: onOpenCalendar,
-        onOpenProfile: onOpenProfile,
+      child: ReloadListener(
+        signal: reloadSignal,
+        onReload: (context) => context.read<TodayTasksCubit>().load(),
+        child: _TodayContent(
+          onOpenCalendar: onOpenCalendar,
+          onOpenProfile: onOpenProfile,
+        ),
       ),
     );
   }

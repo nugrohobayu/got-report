@@ -5,6 +5,7 @@ import 'package:got_report/core/utils/date_formatter.dart';
 import 'package:got_report/core/utils/load_status.dart';
 import 'package:got_report/core/widgets/app_empty_view.dart';
 import 'package:got_report/core/widgets/error_view.dart';
+import 'package:got_report/core/widgets/reload_listener.dart';
 import 'package:got_report/features/kalender_tugas/presentation/bloc/task_calendar_cubit.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
 import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
@@ -15,14 +16,21 @@ import 'package:table_calendar/table_calendar.dart';
 /// Kalender Kerja tab: month calendar of the worker's tasks; a dot per task
 /// under each day, and the tasks of the selected day below.
 class TaskCalendarPage extends StatelessWidget {
-  const TaskCalendarPage({super.key});
+  /// Reloads the shown month each time it notifies (tab opened again).
+  final Listenable? reloadSignal;
+
+  const TaskCalendarPage({super.key, this.reloadSignal});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
           TaskCalendarCubit(context.read<TaskRepository>())..load(),
-      child: const _TaskCalendarView(),
+      child: ReloadListener(
+        signal: reloadSignal,
+        onReload: (context) => context.read<TaskCalendarCubit>().load(),
+        child: const _TaskCalendarView(),
+      ),
     );
   }
 }
