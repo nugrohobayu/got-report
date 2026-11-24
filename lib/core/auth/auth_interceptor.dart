@@ -31,6 +31,11 @@ class AuthInterceptor extends QueuedInterceptor {
     _plainDio = Dio(options.copyWith());
   }
 
+  /// Follows the owning client when its base URL changes at runtime.
+  void updateBaseUrl(String baseUrl) {
+    _plainDio.options.baseUrl = baseUrl;
+  }
+
   static bool _isPublicAuthPath(String path) =>
       path.endsWith(ApiEndpoints.login) ||
       path.endsWith(ApiEndpoints.refresh) ||

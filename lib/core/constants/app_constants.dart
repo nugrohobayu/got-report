@@ -1,10 +1,10 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:got_report/core/config/env_config.dart';
 
 class AppConstants {
   AppConstants._();
 
-  static String get baseUrl =>
-      dotenv.env['BASE_URL'] ?? 'https://jsonplaceholder.typicode.com';
+  /// `.env` value, or the one set on the device (see [EnvConfig]).
+  static String get baseUrl => EnvConfig.baseUrl;
 
   /// Sent as `X-App-Version`; keep in sync with `version:` in pubspec.yaml.
   static const String appVersion = '1.0.1';

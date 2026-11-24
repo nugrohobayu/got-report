@@ -10,6 +10,7 @@ import 'package:got_report/core/widgets/error_view.dart';
 import 'package:got_report/features/login/presentation/widgets/logout_dialog.dart';
 import 'package:got_report/features/profil/domain/entities/user_profile.dart';
 import 'package:got_report/features/profil/presentation/bloc/profile_cubit.dart';
+import 'package:got_report/features/profil/presentation/widgets/env_config_dialog.dart';
 
 /// Profil tab: profile header card, settings (notifications, dark mode),
 /// app info and logout.
@@ -391,8 +392,29 @@ class _NotificationTileState extends State<_NotificationTile>
   }
 }
 
-class _AboutCard extends StatelessWidget {
+/// Tapping "Versi aplikasi" 3× in a row opens the hidden env form.
+class _AboutCard extends StatefulWidget {
   const _AboutCard();
+
+  @override
+  State<_AboutCard> createState() => _AboutCardState();
+}
+
+class _AboutCardState extends State<_AboutCard> {
+  static const _tapsToOpen = 3;
+  static const _maxTapGap = Duration(milliseconds: 600);
+
+  int _taps = 0;
+  DateTime _lastTap = DateTime(0);
+
+  void _onVersionTap() {
+    final now = DateTime.now();
+    _taps = now.difference(_lastTap) <= _maxTapGap ? _taps + 1 : 1;
+    _lastTap = now;
+    if (_taps < _tapsToOpen) return;
+    _taps = 0;
+    showEnvConfigDialog(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -400,6 +422,7 @@ class _AboutCard extends StatelessWidget {
     return _GroupCard(
       children: [
         ListTile(
+          onTap: _onVersionTap,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
           minTileHeight: 60,
           leading: const _RowIcon(Icons.info_outline),

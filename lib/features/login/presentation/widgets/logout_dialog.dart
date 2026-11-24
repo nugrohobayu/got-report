@@ -30,7 +30,17 @@ Future<void> confirmAndLogout(BuildContext context) async {
     ),
   );
   if (confirmed != true || !context.mounted) return;
+  await logoutWithProgress(context);
+}
 
+/// Logs out without asking, showing a blocking progress dialog.
+///
+/// [beforeSignedOut] runs after the server session is revoked and before
+/// the router goes to `/login`, e.g. to switch the server.
+Future<void> logoutWithProgress(
+  BuildContext context, {
+  Future<void> Function()? beforeSignedOut,
+}) async {
   final authRepository = context.read<AuthRepository>();
   final session = context.read<SessionCubit>();
   final navigator = Navigator.of(context, rootNavigator: true);
@@ -59,6 +69,7 @@ Future<void> confirmAndLogout(BuildContext context) async {
 
   // Never throws: network errors still clear the local session.
   await authRepository.logout();
+  await beforeSignedOut?.call();
 
   navigator.pop();
   session.setUnauthenticated();

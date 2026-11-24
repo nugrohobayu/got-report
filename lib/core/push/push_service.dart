@@ -71,6 +71,13 @@ class PushService {
     });
   }
 
+  /// Forgets the server's push switch and reads it again, e.g. after the
+  /// app was pointed at another server.
+  Future<void> reloadServerConfig() {
+    _serverPush = null;
+    return loadServerConfig();
+  }
+
   Future<void> _readServerConfig() async {
     try {
       final data = await apiClient.get(ApiEndpoints.publicConfig);

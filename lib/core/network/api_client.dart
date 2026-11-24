@@ -17,9 +17,11 @@ import 'package:got_report/core/network/logging_interceptor.dart';
 /// `data` on success and throws [ServerException] on error.
 class ApiClient {
   final Dio _dio;
+  final AuthInterceptor? _authInterceptor;
 
   ApiClient({Dio? dio, String? baseUrl, AuthInterceptor? authInterceptor})
-      : _dio = dio ??
+      : _authInterceptor = authInterceptor,
+        _dio = dio ??
             Dio(
               BaseOptions(
                 baseUrl: baseUrl ?? AppConstants.baseUrl,
@@ -41,6 +43,13 @@ class ApiClient {
   }
 
   String get baseUrl => _dio.options.baseUrl;
+
+  /// Points every later request (and token refresh) at [baseUrl], e.g.
+  /// after the env form saved a new `BASE_URL`.
+  void updateBaseUrl(String baseUrl) {
+    _dio.options.baseUrl = baseUrl;
+    _authInterceptor?.updateBaseUrl(baseUrl);
+  }
 
   /// Exposes the underlying [Dio] instance so other network services (e.g.
   /// downloads) can share the same base configuration and interceptors.

@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:got_report/core/auth/auth_interceptor.dart';
 import 'package:got_report/core/auth/session_cubit.dart';
 import 'package:got_report/core/auth/token_storage.dart';
+import 'package:got_report/core/config/env_config.dart';
 import 'package:got_report/core/location/location_service.dart';
 import 'package:got_report/core/network/api_client.dart';
 import 'package:got_report/core/network/download_service.dart';
@@ -48,6 +49,7 @@ Future<void> main() async {
   await initializeDateFormatting('id_ID');
   await _initFirebase();
   final sharedPreferences = await SharedPreferences.getInstance();
+  EnvConfig.init(sharedPreferences);
 
   final tokenStorage = TokenStorage();
   final sessionCubit = SessionCubit(
