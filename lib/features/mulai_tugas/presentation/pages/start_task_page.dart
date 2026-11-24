@@ -79,7 +79,9 @@ class _StartTaskViewState extends State<_StartTaskView>
     // Back from the phone settings: permission / GPS may be on now.
     if (state == AppLifecycleState.resumed) {
       final cubit = context.read<StartTaskCubit>();
-      if (cubit.state.access != LocationAccess.granted) {
+      // While the task is still loading, load() checks access itself.
+      if (cubit.state.info != null &&
+          cubit.state.access != LocationAccess.granted) {
         cubit.checkAccess(locateIfGranted: true);
       }
     }
@@ -115,16 +117,19 @@ class _StartTaskViewState extends State<_StartTaskView>
           appBar:
               AppBar(title: Text(revision ? 'Mulai revisi' : 'Mulai tugas')),
           body: switch (state.status) {
-            StartTaskStatus.loading when info == null =>
-              const Center(child: CircularProgressIndicator()),
             StartTaskStatus.loadFailed => ErrorView(
                 message: state.error ?? 'Gagal memuat tugas.',
                 onRetry: cubit.load,
               ),
+            // Still loading the task. Also covers a GPS read that started
+            // before the detail arrived (e.g. app resumed from a
+            // notification tap): status is then locating/ready, not loading.
+            _ when info == null =>
+              const Center(child: CircularProgressIndicator()),
             _ => ListView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                 children: [
-                  _TaskHeader(task: info!.task),
+                  _TaskHeader(task: info.task),
                   if (revision && note != null && note.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     _Notice(
