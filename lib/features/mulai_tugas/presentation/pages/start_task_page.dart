@@ -177,6 +177,9 @@ class _StartTaskViewState extends State<_StartTaskView>
               : SafeArea(
                   minimum: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                   child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.orange,
+                    ),
                     onPressed: state.canStart ? _start : null,
                     icon: state.status == StartTaskStatus.submitting
                         ? const SizedBox.square(

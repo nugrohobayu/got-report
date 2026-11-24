@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:got_report/core/theme/app_colors.dart';
 import 'package:signature/signature.dart';
 
 /// What the client entered on [SignaturePage].
@@ -178,6 +179,7 @@ class _SignaturePageState extends State<SignaturePage> {
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(20, 8, 20, 16),
         child: FilledButton.icon(
+          style: FilledButton.styleFrom(backgroundColor: AppColors.orange),
           onPressed: _ready ? _submit : null,
           icon: _sending
               ? const SizedBox.square(
