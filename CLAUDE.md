@@ -135,7 +135,7 @@ Kode error yang disepakati: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATIO
 - Link: https://claude.ai/cowork/cse_01Wim4d1nR6hg2XLvhy9M1kx?artifact=4f4549ef-68f2-4aee-b013-e5a7804811e8#sheet-sht_p7tes3vajw.0 (artifact id `4f4549ef-68f2-4aee-b013-e5a7804811e8`, sama dengan Sheet di Referensi tim)
 - Cara baca: Sheet ini adalah artifact tipe Sheets. Baca lewat konektor **Claude Docs** (`guide` topic.sheets → `read` project untuk node workbook → `readCells` sheet `API`, mulai `A1`, sesuai `filledRange` dari `readSheets`). Jangan WebFetch link-nya.
 - Kolom: Method, Endpoint, Dipakai oleh, Fungsi, Status (`Sudah`/`Belum`), Izin / catatan, **FU FE & Mobile** (catatan khusus untuk mobile), Contoh request, Contoh response (JSON nyata dari backend). Baris catatan di bawah tabel menjelaskan envelope respons, paginasi, dan prefix akses (`/field` = petugas di HP).
-- Selalu baca ulang sebelum membuat/mengubah pemanggilan API: isinya diperbarui Rofik dan bisa berubah. Pakai hanya endpoint dengan Status `Sudah`; jika `Belum`, pakai `FakeApi`.
+- Selalu baca ulang sebelum membuat/mengubah pemanggilan API: isinya diperbarui Rofik dan bisa berubah. Pakai hanya endpoint dengan Status `Sudah`; jika `Belum`, jangan dipanggil dulu (kabari user; `FakeApi` belum dibuat, lihat "Selama backend belum siap").
 - Jangan menebak path/field. Jika endpoint yang dibutuhkan tidak ada di tab API, tanyakan ke user (kabari Rofik), jangan mengarang.
 - Sheet hanya dibaca. Jangan menulis ke Sheet kecuali user memintanya.
 - `GET /api/v1/field/tasks` untuk daftar tugas: kirim `dueFrom`/`dueTo` saja, **tanpa parameter `status`** (dikonfirmasi backend). Pengecualian: pelacak GPS (`ping_tracker.dart`) tetap mengirim `status=DIKERJAKAN`.
@@ -146,6 +146,38 @@ Kode error yang disepakati: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATIO
 - dio untuk HTTP (+ interceptor JWT dan error `{code, message}`); model & client boleh di-generate dari `openapi.json` repo backend (salin ke `openapi/`)
 - mobile_scanner (QR), camera (foto, **tanpa galeri**), geolocator (GPS), signature (TTD)
 - flutter_secure_storage untuk token
+
+## Package yang dipakai (`pubspec.yaml`)
+Cek tabel ini sebelum menambah package baru; pakai yang sudah ada jika fungsinya sama. Jika menambah/menghapus package, perbarui tabel ini.
+
+| Package | Versi | Dipakai untuk | Lokasi utama |
+|---|---|---|---|
+| `flutter_bloc`, `bloc`, `equatable` | ^8.1.6, ^8.1.4, ^2.0.5 | State management (Cubit/Bloc), state yang bisa dibandingkan | `features/*/presentation/` , `core/theme/theme_cubit.dart` |
+| `go_router` | ^14.6.2 | Navigasi & deep link dari notifikasi | `core/router/` |
+| `dio` | ^5.7.0 | HTTP client + interceptor JWT & error `{code, message}` | `core/network/api_client.dart`, `core/auth/auth_interceptor.dart` |
+| `path_provider` | ^2.1.5 | Folder lokal untuk unduhan (mis. PDF laporan) | `core/network/download_service.dart` |
+| `flutter_dotenv` | ^5.2.1 | Baca `BASE_URL` dari `.env` (di-bundle sebagai asset) | `core/config/env_config.dart`, `main.dart` |
+| `shared_preferences` | ^2.3.3 | Preferensi non-rahasia: override `BASE_URL` per perangkat, tema, status notifikasi | `core/config/`, `core/theme/`, `core/push/` (key di `core/utils/preference_keys.dart`) |
+| `flutter_secure_storage` | ^9.2.2 | Simpan token JWT (jangan di `shared_preferences`) | `core/auth/` |
+| `intl` + `flutter_localizations` | ^0.19.0 | Format tanggal/jam Bahasa Indonesia (`id_ID`) | `core/utils/date_formatter.dart`, `main.dart` |
+| `google_fonts` | ^6.2.1 | Font aplikasi (file font di-bundle di `assets/google_fonts/`, tidak unduh saat runtime) | `core/theme/app_theme.dart` |
+| `flutter_svg` | ^2.0.17 | Ilustrasi/logo SVG | `features/login/` |
+| `cupertino_icons` | ^1.0.8 | Ikon iOS bawaan | — |
+| `table_calendar` | ^3.1.3 | Kalender tugas | `features/kalender_tugas/` |
+| `url_launcher` | ^6.3.2 | Tombol Navigasi → buka Google Maps via URL | `features/tugas_hari_ini/presentation/widgets/open_navigation.dart` |
+| `geolocator` | ^13.0.4 | GPS untuk mulai tugas & ping berkala (hanya saat tugas berjalan) | `core/location/location_service.dart` (dipakai `core/tracking/ping_tracker.dart`) |
+| `mobile_scanner` | ^5.2.3 | Scan QR (hanya jika `wajib_qr`, atau field `qr`) | `features/mulai_tugas/presentation/pages/qr_scan_page.dart` (dipakai juga oleh `form_dinamis`) |
+| `camera` | ^0.11.2 | Foto bukti langsung dari kamera, **tanpa galeri** | `features/kamera/` |
+| `image` | ^4.13.1 | Perbaiki orientasi EXIF & perkecil foto (JPEG q85) sebelum upload. **Bukan untuk watermark** (watermark dibuat server) | `features/kamera/presentation/pages/camera_capture_page.dart` |
+| `signature` | ^5.5.0 | Kanvas tanda tangan klien | `features/ttd/` |
+| `firebase_core`, `firebase_messaging` | ^5.1.0, ^17.0.1 | Push notification (FCM) tugas baru/berubah | `core/push/` |
+| `firebase_app_installations` | ^0.5.1 | ID instalasi perangkat untuk registrasi push | `core/push/push_service.dart` |
+| `flutter_local_notifications` | ^19.5.0 | Tampilkan notifikasi saat aplikasi di foreground | `core/push/push_notifications.dart` |
+| `app_settings` | ^6.1.1 | Buka pengaturan notifikasi sistem dari halaman Profil | `features/profil/presentation/pages/profile_page.dart` |
+
+Dev: `flutter_lints` ^5.0.0 (lint), `flutter_launcher_icons` ^0.14.3 (ikon app, jalankan `dart run flutter_launcher_icons`; sumber di `assets/icon/`).
+
+Tidak dipakai dan **jangan ditambahkan**: `image_picker` (galeri dilarang).
 
 ## Struktur
 ```
@@ -201,15 +233,23 @@ Field tidak dikenal → tampilkan teks "Field tidak didukung" (jangan crash).
 `CAMERA`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `INTERNET`.
 
 ## Selama backend belum siap
-Buat `FakeApi` yang membaca JSON contoh (template "Instalasi mesin antrean" dari bagian Bersama di atas) dan pilih lewat `--dart-define=USE_FAKE=true`.
+`FakeApi` **belum dibuat** (tidak ada `FakeApi` maupun flag `USE_FAKE` di kode); semua request saat ini langsung ke server `BASE_URL`. Jika nanti dibutuhkan: baca JSON contoh (template "Instalasi mesin antrean" dari bagian Bersama di atas) dan pilih lewat variabel di `.env` (mis. `USE_FAKE=true`, tambahkan juga ke `.env.example`), konsisten dengan konfigurasi `BASE_URL`.
 
 ## Perintah
 ```bash
+cp .env.example .env          # sekali saja, lalu isi BASE_URL
 flutter pub get
-flutter run --dart-define=API_URL=http://10.0.2.2:8080/api   # emulator Android
+flutter run
 flutter analyze && flutter test
+dart run flutter_launcher_icons   # hanya jika ikon di assets/icon/ berubah
 ```
-Di HP fisik, ganti `API_URL` dengan IP laptop di jaringan yang sama.
+
+Konfigurasi server (`lib/core/config/env_config.dart`):
+- `BASE_URL` dibaca dari `.env` (di-bundle sebagai asset lewat `flutter_dotenv`, dimuat di `main.dart`). Tidak memakai `--dart-define`.
+- `BASE_URL` berisi host saja, **tanpa** `/api`; path endpoint sudah memuat prefix `/api/v1/...` (lihat `core/constants/app_constants.dart`). Contoh: emulator Android `BASE_URL=http://10.0.2.2:8080`, HP fisik `BASE_URL=http://<IP-laptop>:8080` (jaringan yang sama).
+- `.env` ada di `.gitignore`; `.env.example` adalah templatenya. Jika menambah variabel baru, tambahkan juga ke `.env.example` (tanpa nilai rahasia).
+- Mengubah `.env` perlu build/run ulang (bukan hot reload), karena file ikut di-bundle.
+- Ganti server tanpa build ulang: di aplikasi, **Profil → ketuk versi aplikasi 3×** → form env. Nilainya disimpan per perangkat di `shared_preferences` (`PreferenceKeys.baseUrlOverride`); mengisi nilai yang sama dengan `.env` mengembalikan ke default.
 
 ## Jangan
 - Memakai `image_picker` dari galeri atau menulis watermark di HP.
