@@ -7,7 +7,7 @@ class AppConstants {
       dotenv.env['BASE_URL'] ?? 'https://jsonplaceholder.typicode.com';
 
   /// Sent as `X-App-Version`; keep in sync with `version:` in pubspec.yaml.
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.1';
 
   static Duration get connectTimeout => const Duration(seconds: 15);
 
