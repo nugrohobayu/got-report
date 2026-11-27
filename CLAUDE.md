@@ -129,6 +129,9 @@ Kode error yang disepakati: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATIO
 ---
 
 # Bagian Khusus Repo Ini
+## Bahasa respons Claude
+Semua balasan, penjelasan, ringkasan, pertanyaan, dan feedback dari Claude ke user **wajib dalam Bahasa Indonesia**. Istilah teknis, nama file, kode, dan perintah tetap apa adanya. Aturan bahasa kode/commit di bagian "Cara kerja dengan Claude" tetap berlaku.
+
 ## Sumber kontrak API (baca sebelum memakai endpoint)
 **Spesifikasi API yang berlaku ada di tab `API` pada Sheet tim**, bukan di tabel "Kontrak API" di atas (itu draf awal; path asli memakai prefix `/api/v1/...`, mis. login HP `/api/v1/auth/staff-app/login`, tugas HP `/api/v1/field/tasks`).
 
