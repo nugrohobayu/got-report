@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/theme/app_colors.dart';
-import 'package:got_report/features/form_dinamis/domain/entities/task_form.dart';
-import 'package:got_report/features/form_dinamis/presentation/bloc/task_form_cubit.dart';
-import 'package:got_report/features/kamera/presentation/pages/camera_capture_page.dart';
-import 'package:got_report/features/mulai_tugas/presentation/pages/qr_scan_page.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
+import 'package:ada_tugas/features/form_dinamis/domain/entities/task_form.dart';
+import 'package:ada_tugas/features/form_dinamis/presentation/bloc/task_form_cubit.dart';
+import 'package:ada_tugas/features/kamera/presentation/pages/camera_capture_page.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/pages/qr_scan_page.dart';
 
 /// Renders one schema field by its `type`. Unknown types show
 /// "Field tidak didukung" instead of failing.

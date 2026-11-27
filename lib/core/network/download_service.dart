@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/network/logging_interceptor.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/network/logging_interceptor.dart';
 
 typedef DownloadProgressCallback = void Function(int received, int total);
 

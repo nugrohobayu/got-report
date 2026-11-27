@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:got_report/features/form_dinamis/presentation/pages/task_form_page.dart';
-import 'package:got_report/features/mulai_tugas/presentation/pages/start_task_page.dart';
-import 'package:got_report/features/mulai_tugas/presentation/start_revision.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/form_dinamis/presentation/pages/task_form_page.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/pages/start_task_page.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/start_revision.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 /// The next thing the worker does with a task, shown as the card button.
 enum TaskAction {

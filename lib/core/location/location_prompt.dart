@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/location/location_service.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
 
 bool _askedThisRun = false;
 

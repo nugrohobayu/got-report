@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/network/download_service.dart';
-import 'package:got_report/core/widgets/app_button.dart';
-import 'package:got_report/core/widgets/app_text_form_field.dart';
+import 'package:ada_tugas/core/network/download_service.dart';
+import 'package:ada_tugas/core/widgets/app_button.dart';
+import 'package:ada_tugas/core/widgets/app_text_form_field.dart';
 
 enum _DownloadStatus { idle, downloading, success, error, cancelled }
 

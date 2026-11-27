@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/location/location_service.dart';
-import 'package:got_report/features/form_dinamis/data/models/task_form_model.dart';
-import 'package:got_report/features/form_dinamis/domain/entities/task_form.dart';
-import 'package:got_report/features/form_dinamis/domain/repositories/task_form_repository.dart';
-import 'package:got_report/features/form_dinamis/presentation/bloc/task_form_cubit.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
+import 'package:ada_tugas/features/form_dinamis/data/models/task_form_model.dart';
+import 'package:ada_tugas/features/form_dinamis/domain/entities/task_form.dart';
+import 'package:ada_tugas/features/form_dinamis/domain/repositories/task_form_repository.dart';
+import 'package:ada_tugas/features/form_dinamis/presentation/bloc/task_form_cubit.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 /// "Contoh response" of GET /api/v1/field/tasks/{id} (template part).
 Map<String, dynamic> _detail({String myRole = 'LEADER'}) => {

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/location/location_service.dart';
-import 'package:got_report/features/mulai_tugas/domain/entities/task_start.dart';
-import 'package:got_report/features/mulai_tugas/domain/repositories/start_task_repository.dart';
-import 'package:got_report/features/mulai_tugas/presentation/start_revision.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/entities/task_start.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/repositories/start_task_repository.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/start_revision.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 import 'helpers/fake_location_service.dart';
 

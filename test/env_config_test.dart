@@ -1,6 +1,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:got_report/core/config/env_config.dart';
+import 'package:ada_tugas/core/config/env_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

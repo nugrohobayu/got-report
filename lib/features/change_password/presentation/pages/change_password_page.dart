@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/auth/session_cubit.dart';
-import 'package:got_report/core/theme/app_colors.dart';
-import 'package:got_report/features/change_password/presentation/bloc/change_password_cubit.dart';
-import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
-import 'package:got_report/features/login/presentation/widgets/auth_widgets.dart';
+import 'package:ada_tugas/core/auth/session_cubit.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
+import 'package:ada_tugas/features/change_password/presentation/bloc/change_password_cubit.dart';
+import 'package:ada_tugas/features/login/domain/repositories/auth_repository.dart';
+import 'package:ada_tugas/features/login/presentation/widgets/auth_widgets.dart';
 
 /// Shown right after login when the server returns `mustChangePassword`.
 /// The router keeps the user here until the password is changed (then back

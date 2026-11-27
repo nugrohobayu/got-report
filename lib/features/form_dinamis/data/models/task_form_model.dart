@@ -1,6 +1,6 @@
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/features/form_dinamis/domain/entities/task_form.dart';
-import 'package:got_report/features/tugas_hari_ini/data/models/task_summary_model.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/features/form_dinamis/domain/entities/task_form.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/data/models/task_summary_model.dart';
 
 /// Parsers for the form endpoints (shapes from the API tab examples).
 class TaskFormModel {

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 /// Field types of `template.schema` (see the API tab, template versions).
 class FieldType {

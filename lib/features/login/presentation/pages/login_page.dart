@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:got_report/core/auth/session_cubit.dart';
-import 'package:got_report/core/router/app_router.dart';
-import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
-import 'package:got_report/features/login/presentation/bloc/login_cubit.dart';
-import 'package:got_report/features/login/presentation/widgets/auth_widgets.dart';
+import 'package:ada_tugas/core/auth/session_cubit.dart';
+import 'package:ada_tugas/core/router/app_router.dart';
+import 'package:ada_tugas/features/login/domain/repositories/auth_repository.dart';
+import 'package:ada_tugas/features/login/presentation/bloc/login_cubit.dart';
+import 'package:ada_tugas/features/login/presentation/widgets/auth_widgets.dart';
 
 /// Login screen based on Figma "Login Version 8" (node 44:5551), adapted to
 /// the brand: AdaTugas logo, brand blue, no social login / remember me /

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:got_report/core/theme/app_colors.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
 
 /// App theme: Plus Jakarta Sans, brand navy / orange / blue.
 ///

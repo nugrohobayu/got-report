@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/location/location_service.dart';
-import 'package:got_report/core/network/api_client.dart';
-import 'package:got_report/core/tracking/ping_tracker.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
+import 'package:ada_tugas/core/network/api_client.dart';
+import 'package:ada_tugas/core/tracking/ping_tracker.dart';
 
 import 'helpers/fake_location_service.dart';
 

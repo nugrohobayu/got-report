@@ -1,9 +1,9 @@
-import 'package:got_report/core/auth/token_storage.dart';
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/utils/app_logger.dart';
-import 'package:got_report/features/login/data/datasources/auth_remote_data_source.dart';
-import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
+import 'package:ada_tugas/core/auth/token_storage.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/utils/app_logger.dart';
+import 'package:ada_tugas/features/login/data/datasources/auth_remote_data_source.dart';
+import 'package:ada_tugas/features/login/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;

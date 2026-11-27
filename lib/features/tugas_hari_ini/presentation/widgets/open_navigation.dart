@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Opens Google Maps (app if installed, otherwise browser) with directions

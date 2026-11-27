@@ -1,16 +1,16 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/push/push_service.dart';
-import 'package:got_report/core/theme/app_colors.dart';
-import 'package:got_report/core/theme/theme_cubit.dart';
-import 'package:got_report/core/utils/load_status.dart';
-import 'package:got_report/core/widgets/error_view.dart';
-import 'package:got_report/features/login/presentation/widgets/logout_dialog.dart';
-import 'package:got_report/features/profil/domain/entities/user_profile.dart';
-import 'package:got_report/features/profil/presentation/bloc/profile_cubit.dart';
-import 'package:got_report/features/profil/presentation/widgets/env_config_dialog.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/push/push_service.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
+import 'package:ada_tugas/core/theme/theme_cubit.dart';
+import 'package:ada_tugas/core/utils/load_status.dart';
+import 'package:ada_tugas/core/widgets/error_view.dart';
+import 'package:ada_tugas/features/login/presentation/widgets/logout_dialog.dart';
+import 'package:ada_tugas/features/profil/domain/entities/user_profile.dart';
+import 'package:ada_tugas/features/profil/presentation/bloc/profile_cubit.dart';
+import 'package:ada_tugas/features/profil/presentation/widgets/env_config_dialog.dart';
 
 /// Profil tab: profile header card, settings (notifications, dark mode),
 /// app info and logout.

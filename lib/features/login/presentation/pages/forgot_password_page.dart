@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
-import 'package:got_report/features/login/presentation/bloc/forgot_password_cubit.dart';
-import 'package:got_report/features/login/presentation/widgets/auth_widgets.dart';
+import 'package:ada_tugas/features/login/domain/repositories/auth_repository.dart';
+import 'package:ada_tugas/features/login/presentation/bloc/forgot_password_cubit.dart';
+import 'package:ada_tugas/features/login/presentation/widgets/auth_widgets.dart';
 
 /// "Lupa kata sandi": the worker enters their email and the backend sends a
 /// reset link. Same look as the login screen.

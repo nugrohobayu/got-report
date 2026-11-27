@@ -1,8 +1,8 @@
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/features/tugas_hari_ini/data/datasources/task_remote_data_source.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/data/datasources/task_remote_data_source.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/repositories/task_repository.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
   final TaskRemoteDataSource remoteDataSource;

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import 'package:got_report/core/utils/app_logger.dart';
+import 'package:ada_tugas/core/utils/app_logger.dart';
 
 /// Logs every request/response (or error) pair through [AppLogger.api],
 /// matching the ":: PROCESSING ::" / ":: FINALLY ::" format the app has

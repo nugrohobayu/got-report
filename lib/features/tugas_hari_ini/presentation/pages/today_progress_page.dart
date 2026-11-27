@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/theme/app_colors.dart';
-import 'package:got_report/core/utils/date_formatter.dart';
-import 'package:got_report/core/utils/load_status.dart';
-import 'package:got_report/core/widgets/error_view.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/today_progress.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/bloc/today_tasks_cubit.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_card.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
+import 'package:ada_tugas/core/utils/date_formatter.dart';
+import 'package:ada_tugas/core/utils/load_status.dart';
+import 'package:ada_tugas/core/widgets/error_view.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/today_progress.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/bloc/today_tasks_cubit.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/task_card.dart';
 
 /// Opens [TodayProgressPage] on the Beranda's [TodayTasksCubit], so both
 /// screens show (and refresh) the same list.

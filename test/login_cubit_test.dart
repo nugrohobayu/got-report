@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:got_report/core/auth/session_cubit.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/features/change_password/presentation/bloc/change_password_cubit.dart';
-import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
-import 'package:got_report/features/login/presentation/bloc/forgot_password_cubit.dart';
-import 'package:got_report/features/login/presentation/bloc/login_cubit.dart';
+import 'package:ada_tugas/core/auth/session_cubit.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/features/change_password/presentation/bloc/change_password_cubit.dart';
+import 'package:ada_tugas/features/login/domain/repositories/auth_repository.dart';
+import 'package:ada_tugas/features/login/presentation/bloc/forgot_password_cubit.dart';
+import 'package:ada_tugas/features/login/presentation/bloc/login_cubit.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   Failure? loginFailure;

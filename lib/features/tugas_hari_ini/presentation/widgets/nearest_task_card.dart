@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:got_report/core/theme/app_colors.dart';
-import 'package:got_report/core/utils/date_formatter.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/open_navigation.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_action.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_status_chip.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
+import 'package:ada_tugas/core/utils/date_formatter.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/open_navigation.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/task_action.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/task_status_chip.dart';
 
 /// Highlighted card for the next task to do, with the screen's main
 /// (blue) button: the task's next action (Mulai / Lanjutkan tugas /

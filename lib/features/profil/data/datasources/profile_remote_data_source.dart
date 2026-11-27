@@ -1,7 +1,7 @@
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/network/api_client.dart';
-import 'package:got_report/features/profil/data/models/user_profile_model.dart';
-import 'package:got_report/features/profil/domain/entities/user_profile.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/network/api_client.dart';
+import 'package:ada_tugas/features/profil/data/models/user_profile_model.dart';
+import 'package:ada_tugas/features/profil/domain/entities/user_profile.dart';
 
 abstract class ProfileRemoteDataSource {
   /// `GET /api/v1/me`.

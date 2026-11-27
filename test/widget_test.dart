@@ -1,8 +1,8 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:got_report/core/auth/session_cubit.dart';
-import 'package:got_report/core/auth/token_storage.dart';
-import 'package:got_report/main.dart';
+import 'package:ada_tugas/core/auth/session_cubit.dart';
+import 'package:ada_tugas/core/auth/token_storage.dart';
+import 'package:ada_tugas/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

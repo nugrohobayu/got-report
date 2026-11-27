@@ -1,6 +1,6 @@
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/network/api_client.dart';
-import 'package:got_report/features/login/data/models/auth_token_model.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/network/api_client.dart';
+import 'package:ada_tugas/features/login/data/models/auth_token_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<AuthTokenModel> login({

@@ -1,8 +1,8 @@
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/features/profil/data/datasources/profile_remote_data_source.dart';
-import 'package:got_report/features/profil/domain/entities/user_profile.dart';
-import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/features/profil/data/datasources/profile_remote_data_source.dart';
+import 'package:ada_tugas/features/profil/domain/entities/user_profile.dart';
+import 'package:ada_tugas/features/profil/domain/repositories/profile_repository.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileRemoteDataSource remoteDataSource;

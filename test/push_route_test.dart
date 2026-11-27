@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:got_report/core/push/push_notifications.dart';
+import 'package:ada_tugas/core/push/push_notifications.dart';
 
 void main() {
   group('taskIdFromPushRoute', () {

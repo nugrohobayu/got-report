@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:got_report/core/theme/app_colors.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
 import 'package:signature/signature.dart';
 
 /// What the client entered on [SignaturePage].

@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/location/location_service.dart';
-import 'package:got_report/features/mulai_tugas/data/datasources/start_task_remote_data_source.dart';
-import 'package:got_report/features/mulai_tugas/domain/entities/task_start.dart';
-import 'package:got_report/features/mulai_tugas/domain/repositories/start_task_repository.dart';
-import 'package:got_report/features/mulai_tugas/presentation/bloc/start_task_cubit.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_action.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
+import 'package:ada_tugas/features/mulai_tugas/data/datasources/start_task_remote_data_source.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/entities/task_start.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/repositories/start_task_repository.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/bloc/start_task_cubit.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/task_action.dart';
 
 /// Trimmed "Contoh response" of GET /api/v1/field/tasks/{id}.
 const _detailJson = {

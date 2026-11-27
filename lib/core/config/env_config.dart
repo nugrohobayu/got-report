@@ -1,5 +1,5 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:got_report/core/utils/preference_keys.dart';
+import 'package:ada_tugas/core/utils/preference_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Runtime environment. Values come from the bundled `.env`, unless changed

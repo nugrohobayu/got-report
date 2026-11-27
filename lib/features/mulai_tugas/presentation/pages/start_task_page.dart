@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:got_report/core/tracking/ping_tracker.dart';
-import 'package:got_report/core/location/location_service.dart';
-import 'package:got_report/core/theme/app_colors.dart';
-import 'package:got_report/core/utils/date_formatter.dart';
-import 'package:got_report/core/widgets/error_view.dart';
-import 'package:got_report/features/mulai_tugas/domain/repositories/start_task_repository.dart';
-import 'package:got_report/features/mulai_tugas/presentation/bloc/start_task_cubit.dart';
-import 'package:got_report/features/mulai_tugas/presentation/pages/qr_scan_page.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/tracking/ping_tracker.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
+import 'package:ada_tugas/core/utils/date_formatter.dart';
+import 'package:ada_tugas/core/widgets/error_view.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/repositories/start_task_repository.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/bloc/start_task_cubit.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/pages/qr_scan_page.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 /// Route name of [StartTaskPage]; path `/tasks/:id/start`.
 const startTaskRouteName = 'startTask';

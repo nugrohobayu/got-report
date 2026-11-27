@@ -1,4 +1,4 @@
-import 'package:got_report/core/error/exceptions.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
 
 /// `data` of `POST /api/v1/auth/staff-app/login` and `/refresh`.
 class AuthTokenModel {

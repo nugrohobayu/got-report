@@ -2,11 +2,11 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/location/location_service.dart';
-import 'package:got_report/features/form_dinamis/domain/entities/task_form.dart';
-import 'package:got_report/features/form_dinamis/domain/repositories/task_form_repository.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
+import 'package:ada_tugas/features/form_dinamis/domain/entities/task_form.dart';
+import 'package:ada_tugas/features/form_dinamis/domain/repositories/task_form_repository.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 enum TaskFormStatus {
   loading,

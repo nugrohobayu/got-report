@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/theme/app_colors.dart';
-import 'package:got_report/core/utils/date_formatter.dart';
-import 'package:got_report/core/utils/load_status.dart';
-import 'package:got_report/core/widgets/app_empty_view.dart';
-import 'package:got_report/core/widgets/error_view.dart';
-import 'package:got_report/core/widgets/reload_listener.dart';
-import 'package:got_report/features/kalender_tugas/presentation/bloc/task_calendar_cubit.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_card.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_status_chip.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
+import 'package:ada_tugas/core/utils/date_formatter.dart';
+import 'package:ada_tugas/core/utils/load_status.dart';
+import 'package:ada_tugas/core/widgets/app_empty_view.dart';
+import 'package:ada_tugas/core/widgets/error_view.dart';
+import 'package:ada_tugas/core/widgets/reload_listener.dart';
+import 'package:ada_tugas/features/kalender_tugas/presentation/bloc/task_calendar_cubit.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/task_card.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/task_status_chip.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 /// Kalender Kerja tab: month calendar of the worker's tasks; a dot per task

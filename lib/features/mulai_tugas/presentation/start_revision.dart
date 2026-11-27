@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/tracking/ping_tracker.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/location/location_service.dart';
-import 'package:got_report/features/mulai_tugas/domain/entities/task_start.dart';
-import 'package:got_report/features/mulai_tugas/domain/repositories/start_task_repository.dart';
-import 'package:got_report/features/mulai_tugas/presentation/bloc/start_task_cubit.dart';
-import 'package:got_report/features/mulai_tugas/presentation/pages/qr_scan_page.dart';
-import 'package:got_report/features/mulai_tugas/presentation/pages/start_task_page.dart';
+import 'package:ada_tugas/core/tracking/ping_tracker.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/entities/task_start.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/repositories/start_task_repository.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/bloc/start_task_cubit.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/pages/qr_scan_page.dart';
+import 'package:ada_tugas/features/mulai_tugas/presentation/pages/start_task_page.dart';
 
 /// Opens the scanner and returns the scanned text, or `null` if closed.
 typedef QrScanner = Future<String?> Function(BuildContext context);

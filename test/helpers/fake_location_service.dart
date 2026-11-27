@@ -1,4 +1,4 @@
-import 'package:got_report/core/location/location_service.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
 
 /// Location service for widget tests: permission state is set by the test,
 /// fixes are fixed coordinates.

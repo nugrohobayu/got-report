@@ -5,11 +5,11 @@ import 'package:firebase_app_installations/firebase_app_installations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/network/api_client.dart';
-import 'package:got_report/core/utils/app_logger.dart';
-import 'package:got_report/core/utils/preference_keys.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/network/api_client.dart';
+import 'package:ada_tugas/core/utils/app_logger.dart';
+import 'package:ada_tugas/core/utils/preference_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// What the Notifikasi switch in Profil shows.

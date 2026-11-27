@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:got_report/core/theme/app_colors.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/theme/app_colors.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 /// Label and color of a task status, same color rules as the web:
 /// Belum abu, Berjalan biru, Selesai hijau, Terlambat merah.

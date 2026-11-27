@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:got_report/core/location/location_prompt.dart';
-import 'package:got_report/core/location/location_service.dart';
+import 'package:ada_tugas/core/location/location_prompt.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
 
 import 'helpers/fake_location_service.dart';
 

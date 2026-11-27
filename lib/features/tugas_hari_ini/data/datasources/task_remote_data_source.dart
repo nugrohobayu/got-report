@@ -1,7 +1,7 @@
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/network/api_client.dart';
-import 'package:got_report/features/tugas_hari_ini/data/models/task_summary_model.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/network/api_client.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/data/models/task_summary_model.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 abstract class TaskRemoteDataSource {
   /// `GET /api/v1/field/tasks?dueFrom=&dueTo=`, sorted by `dueAt`.

@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/utils/load_status.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/today_progress.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/utils/load_status.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/today_progress.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/repositories/task_repository.dart';
 
 class TodayTasksState extends Equatable {
   final LoadStatus status;

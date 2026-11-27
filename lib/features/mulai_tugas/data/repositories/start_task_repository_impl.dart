@@ -1,9 +1,9 @@
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/features/mulai_tugas/data/datasources/start_task_remote_data_source.dart';
-import 'package:got_report/features/mulai_tugas/domain/entities/task_start.dart';
-import 'package:got_report/features/mulai_tugas/domain/repositories/start_task_repository.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/features/mulai_tugas/data/datasources/start_task_remote_data_source.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/entities/task_start.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/repositories/start_task_repository.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 class StartTaskRepositoryImpl implements StartTaskRepository {
   final StartTaskRemoteDataSource remoteDataSource;

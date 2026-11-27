@@ -1,5 +1,5 @@
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 /// Parses one item of `data` from `GET /api/v1/field/tasks`.
 class TaskSummaryModel {

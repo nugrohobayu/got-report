@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/auth/session_cubit.dart';
-import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
+import 'package:ada_tugas/core/auth/session_cubit.dart';
+import 'package:ada_tugas/features/login/domain/repositories/auth_repository.dart';
 
 /// Asks for confirmation, then logs out: revokes the session on the server
 /// (best effort), clears the stored tokens and flips [SessionCubit], which

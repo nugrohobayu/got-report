@@ -1,5 +1,5 @@
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/error/failures.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/error/failures.dart';
 
 /// Runs a data-source call and turns data-layer exceptions into [Failure]s,
 /// keeping the backend error code and details.

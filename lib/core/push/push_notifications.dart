@@ -4,8 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:got_report/core/utils/app_logger.dart';
-import 'package:got_report/core/utils/preference_keys.dart';
+import 'package:ada_tugas/core/utils/app_logger.dart';
+import 'package:ada_tugas/core/utils/preference_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Called with the push `data.route` (e.g. `/tasks/<id>`) when the user

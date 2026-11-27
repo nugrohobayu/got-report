@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/utils/load_status.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/utils/load_status.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/repositories/task_repository.dart';
 
 /// Default range when the page opens: the last 30 days up to today.
 const defaultHistoryDays = 30;

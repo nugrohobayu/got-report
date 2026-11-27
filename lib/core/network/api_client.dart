@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
-import 'package:got_report/core/auth/auth_interceptor.dart';
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/network/logging_interceptor.dart';
+import 'package:ada_tugas/core/auth/auth_interceptor.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/network/logging_interceptor.dart';
 
 /// Thin, reusable wrapper around [Dio] that centralizes the base URL,
 /// timeouts, and error translation so that data sources never touch

@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/config/env_config.dart';
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/network/api_client.dart';
-import 'package:got_report/core/push/push_service.dart';
-import 'package:got_report/features/login/presentation/widgets/logout_dialog.dart';
+import 'package:ada_tugas/core/config/env_config.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/network/api_client.dart';
+import 'package:ada_tugas/core/push/push_service.dart';
+import 'package:ada_tugas/features/login/presentation/widgets/logout_dialog.dart';
 
 /// Hidden env form (Profil → tap the app version 3×). Saving checks the
 /// new server first; on success the user is logged out from the current

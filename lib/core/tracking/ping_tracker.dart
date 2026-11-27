@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/location/location_service.dart';
-import 'package:got_report/core/network/api_client.dart';
-import 'package:got_report/core/utils/app_logger.dart';
-import 'package:got_report/features/tugas_hari_ini/data/models/task_summary_model.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/location/location_service.dart';
+import 'package:ada_tugas/core/network/api_client.dart';
+import 'package:ada_tugas/core/utils/app_logger.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/data/models/task_summary_model.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 /// One GPS point for `POST /api/v1/field/pings`.
 class Ping {

@@ -1,9 +1,9 @@
-import 'package:got_report/core/constants/app_constants.dart';
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/core/network/api_client.dart';
-import 'package:got_report/features/mulai_tugas/domain/entities/task_start.dart';
-import 'package:got_report/features/tugas_hari_ini/data/models/task_summary_model.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/entities/task_summary.dart';
+import 'package:ada_tugas/core/constants/app_constants.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/core/network/api_client.dart';
+import 'package:ada_tugas/features/mulai_tugas/domain/entities/task_start.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/data/models/task_summary_model.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/entities/task_summary.dart';
 
 abstract class StartTaskRemoteDataSource {
   /// `GET /api/v1/field/tasks/{id}`.

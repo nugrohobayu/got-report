@@ -1,5 +1,5 @@
-import 'package:got_report/core/error/exceptions.dart';
-import 'package:got_report/features/profil/domain/entities/user_profile.dart';
+import 'package:ada_tugas/core/error/exceptions.dart';
+import 'package:ada_tugas/features/profil/domain/entities/user_profile.dart';
 
 class UserProfileModel {
   UserProfileModel._();

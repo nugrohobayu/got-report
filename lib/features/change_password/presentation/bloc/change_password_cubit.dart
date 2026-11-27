@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/auth/session_cubit.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/features/login/domain/repositories/auth_repository.dart';
+import 'package:ada_tugas/core/auth/session_cubit.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/features/login/domain/repositories/auth_repository.dart';
 
 class ChangePasswordState extends Equatable {
   final bool loading;

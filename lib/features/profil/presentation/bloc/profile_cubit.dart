@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/error/failures.dart';
-import 'package:got_report/core/utils/load_status.dart';
-import 'package:got_report/features/profil/domain/entities/user_profile.dart';
-import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
+import 'package:ada_tugas/core/error/failures.dart';
+import 'package:ada_tugas/core/utils/load_status.dart';
+import 'package:ada_tugas/features/profil/domain/entities/user_profile.dart';
+import 'package:ada_tugas/features/profil/domain/repositories/profile_repository.dart';
 
 class ProfileState extends Equatable {
   final LoadStatus status;

@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:got_report/core/location/location_prompt.dart';
-import 'package:got_report/core/utils/date_formatter.dart';
-import 'package:got_report/core/utils/load_status.dart';
-import 'package:got_report/core/widgets/error_view.dart';
-import 'package:got_report/core/widgets/reload_listener.dart';
-import 'package:got_report/features/kalender_tugas/presentation/pages/task_calendar_page.dart';
-import 'package:got_report/features/login/presentation/widgets/auth_widgets.dart';
-import 'package:got_report/features/profil/domain/repositories/profile_repository.dart';
-import 'package:got_report/features/profil/presentation/bloc/profile_cubit.dart';
-import 'package:got_report/features/profil/presentation/pages/profile_page.dart';
-import 'package:got_report/features/riwayat_penugasan/presentation/pages/task_history_page.dart';
-import 'package:got_report/features/tugas_hari_ini/domain/repositories/task_repository.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/bloc/today_tasks_cubit.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/pages/today_progress_page.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/nearest_task_card.dart';
-import 'package:got_report/features/tugas_hari_ini/presentation/widgets/task_card.dart';
+import 'package:ada_tugas/core/location/location_prompt.dart';
+import 'package:ada_tugas/core/utils/date_formatter.dart';
+import 'package:ada_tugas/core/utils/load_status.dart';
+import 'package:ada_tugas/core/widgets/error_view.dart';
+import 'package:ada_tugas/core/widgets/reload_listener.dart';
+import 'package:ada_tugas/features/kalender_tugas/presentation/pages/task_calendar_page.dart';
+import 'package:ada_tugas/features/login/presentation/widgets/auth_widgets.dart';
+import 'package:ada_tugas/features/profil/domain/repositories/profile_repository.dart';
+import 'package:ada_tugas/features/profil/presentation/bloc/profile_cubit.dart';
+import 'package:ada_tugas/features/profil/presentation/pages/profile_page.dart';
+import 'package:ada_tugas/features/riwayat_penugasan/presentation/pages/task_history_page.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/domain/repositories/task_repository.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/bloc/today_tasks_cubit.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/pages/today_progress_page.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/nearest_task_card.dart';
+import 'package:ada_tugas/features/tugas_hari_ini/presentation/widgets/task_card.dart';
 
 /// Main shell after login, with a bottom navbar of four tabs: Beranda
 /// (today's tasks), Kalender (Kalender Kerja), Riwayat (assignment history)
