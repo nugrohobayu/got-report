@@ -1,4 +1,4 @@
-# myapp
+# Ada Tugas
 
 Boilerplate Flutter production-ready dengan clean architecture (feature-first), `flutter_bloc` untuk state management, dan DI berbasis `RepositoryProvider`/`BlocProvider` (tanpa `get_it`/service locator).
 

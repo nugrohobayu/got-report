@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "myapp",
+            "name": "Ada Tugas",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "myapp (profile mode)",
+            "name": "Ada Tugas (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "myapp (release mode)",
+            "name": "Ada Tugas (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
